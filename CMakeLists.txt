@@ -1,6 +1,10 @@
-cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 project(minisat)
+
+include_directories(../circuitsat)
 
 #--------------------------------------------------------------------------------------------------
 # Configurable options:
@@ -42,7 +46,9 @@ set(MINISAT_LIB_SOURCES
     minisat/utils/Options.cc
     minisat/utils/System.cc
     minisat/core/Solver.cc
-    minisat/simp/SimpSolver.cc)
+    minisat/simp/SimpSolver.cc
+    /home/danila/CircuitSAT/circuitsat/baseline/cpp/src/parser/parser.cpp
+    /home/danila/CircuitSAT/circuitsat/baseline/cpp/src/utils/utils.cpp)
 
 add_library(minisat-lib-static STATIC ${MINISAT_LIB_SOURCES})
 add_library(minisat-lib-shared SHARED ${MINISAT_LIB_SOURCES})
@@ -61,14 +67,14 @@ else()
   target_link_libraries(minisat_simp minisat-lib-shared)
 endif()
 
-set_target_properties(minisat-lib-static PROPERTIES OUTPUT_NAME "minisat")
+set_target_properties(minisat-lib-static PROPERTIES OUTPUT_NAME "cminisat")
 set_target_properties(minisat-lib-shared
   PROPERTIES
-    OUTPUT_NAME "minisat" 
+    OUTPUT_NAME "cminisat" 
     VERSION ${MINISAT_VERSION}
     SOVERSION ${MINISAT_SOVERSION})
 
-set_target_properties(minisat_simp       PROPERTIES OUTPUT_NAME "minisat")
+set_target_properties(minisat_simp       PROPERTIES OUTPUT_NAME "cminisat")
 
 #--------------------------------------------------------------------------------------------------
 # Installation targets:

@@ -27,6 +27,14 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "minisat/core/Dimacs.h"
 #include "minisat/core/Solver.h"
 
+#include "/home/danila/CircuitSAT/circuitsat/core/source/structures/parser.hpp"
+#include "/home/danila/CircuitSAT/circuitsat/baseline/cpp/src/parser/parser.hpp"
+#include "/home/danila/CircuitSAT/circuitsat/baseline/cpp/src/utils/utils.hpp"
+
+#include <sstream>
+#include <fstream>
+
+
 using namespace Minisat;
 
 //=================================================================================================
@@ -55,24 +63,22 @@ static void SIGINT_exit(int) {
 int main(int argc, char** argv)
 {
     try {
-        setUsageHelp("USAGE: %s [options] <input-file> <result-output-file>\n\n  where input may be either in plain or gzipped DIMACS.\n");
+        setUsageHelp("USAGE: %s [options] <input-file> <result-output-file>\n\n  where input is BENCH file.\n");
         setX86FPUPrecision();
 
         // Extra options:
         //
-        IntOption    verb   ("MAIN", "verb",   "Verbosity level (0=silent, 1=some, 2=more).", 1, IntRange(0, 2));
-        IntOption    cpu_lim("MAIN", "cpu-lim","Limit on CPU time allowed in seconds.\n", 0, IntRange(0, INT32_MAX));
-        IntOption    mem_lim("MAIN", "mem-lim","Limit on memory usage in megabytes.\n", 0, IntRange(0, INT32_MAX));
-        BoolOption   strictp("MAIN", "strict", "Validate DIMACS header during parsing.", false);
+        IntOption    verb   ("MAIN", "verb",    "Verbosity level (0=silent, 1=some, 2=more).", 1,     IntRange(0, 2));
+        IntOption    cpu_lim("MAIN", "cpu-lim", "Limit on CPU time allowed in seconds.\n",     0,     IntRange(0, INT32_MAX));
+        IntOption    mem_lim("MAIN", "mem-lim", "Limit on memory usage in megabytes.\n",       0,     IntRange(0, INT32_MAX));
+        BoolOption   strictp("MAIN", "strict",  "Validate DIMACS header during parsing.",      false);
         
         parseOptions(argc, argv, true);
 
         Solver S;
-        double initial_time = cpuTime();
-
+        solver = &S;
         S.verbosity = verb;
         
-        solver = &S;
         // Use signal handlers that forcibly quit until the solver will be able to respond to
         // interrupts:
         sigTerm(SIGINT_exit);
@@ -82,11 +88,44 @@ int main(int argc, char** argv)
         if (mem_lim != 0) limitMemory(mem_lim);
         
         if (argc == 1)
-            printf("Reading from standard input... Use '--help' for help.\n");
-        
-        gzFile in = (argc == 1) ? gzdopen(0, "rb") : gzopen(argv[1], "rb");
+        {
+            printf("ERROR! Not enough arguments"), exit(1);
+        }
+
+        double initial_time = cpuTime();
+
+        std::string bench_file = argv[1];
+        std::ifstream file(bench_file);
+
+        if (!file.is_open())
+        {
+            printf("ERROR! Could not open file: %s\n", argv[1]), exit(1);
+        }
+
+        auto parser = csat::BenchParser<csat::DAG>();
+        parser.parseStream(file);
+        file.clear();
+        file.seekg(0);
+
+        auto csat_instance = parser.instantiate();
+        S.csat_instance = &csat_instance;
+
+        BenchToCNF bench_to_cnf_parser;
+        bench_to_cnf_parser.convert_to_cnf(file);
+        file.close();
+
+        std::ofstream cnf_file("cnf_file.dimacs");
+        cnf_file << cnf_to_str(
+            bench_to_cnf_parser.cnf, 
+            bench_to_cnf_parser.gate_number,
+            bench_to_cnf_parser.clauses_number);
+        cnf_file.close();
+        double transfer_to_cnf_time = cpuTime() - initial_time;
+
+        initial_time = cpuTime();
+        gzFile in = gzopen("cnf_file.dimacs", "rb");
         if (in == NULL)
-            printf("ERROR! Could not open file: %s\n", argc == 1 ? "<stdin>" : argv[1]), exit(1);
+            printf("ERROR! Could not open file: cnf_file.dimacs"), exit(1);
         
         if (S.verbosity > 0){
             printf("============================[ Problem Statistics ]=============================\n");
@@ -102,6 +141,7 @@ int main(int argc, char** argv)
         
         double parsed_time = cpuTime();
         if (S.verbosity > 0){
+            printf("|  Transfer to CNF time: %12.2f s                                       |\n", transfer_to_cnf_time);
             printf("|  Parse time:           %12.2f s                                       |\n", parsed_time - initial_time);
             printf("|                                                                             |\n"); }
  
