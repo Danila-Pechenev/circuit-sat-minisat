@@ -248,7 +248,9 @@ void Solver::cancelUntil(int level) {
 
             if (phase_saving > 1 || (phase_saving == 1 && c > trail_lim.last()))
                 polarity[x] = sign(trail[c]);
-            insertVarOrder(x); }
+            // No need in Circuit-SAT:
+            // insertVarOrder(x);
+        }
         qhead = trail_lim[level];
         trail.shrink(trail.size() - trail_lim[level]);
         trail_lim.shrink(trail_lim.size() - level);
@@ -735,7 +737,8 @@ bool Solver::simplify()
         released_vars.clear();
     }
     checkGarbage();
-    rebuildOrderHeap();
+    // No need in Circuit-SAT:
+    // rebuildOrderHeap();
 
     simpDB_assigns = nAssigns();
     simpDB_props   = clauses_literals + learnts_literals;   // (shouldn't depend on stats really, but it will do for now)
