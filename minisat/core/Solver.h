@@ -329,8 +329,10 @@ inline void Solver::varBumpActivity(Var v, double inc) {
         var_inc *= 1e-100; }
 
     // Update order_heap with respect to new activity:
-    if (order_heap.inHeap(v))
-        order_heap.decrease(v); }
+    // No need in Circuit-SAT:
+    // if (order_heap.inHeap(v))
+    //     order_heap.decrease(v); 
+}
 
 inline void Solver::claDecayActivity() { cla_inc *= (1 / clause_decay); }
 inline void Solver::claBumpActivity (Clause& c) {
@@ -377,7 +379,8 @@ inline void     Solver::setDecisionVar(Var v, bool b)
     else if (!b &&  decision[v]) dec_vars--;
 
     decision[v] = b;
-    insertVarOrder(v);
+    // No need in Circuit-SAT:
+    // insertVarOrder(v);
 }
 inline void     Solver::setConfBudget(int64_t x){ conflict_budget    = conflicts    + x; }
 inline void     Solver::setPropBudget(int64_t x){ propagation_budget = propagations + x; }
