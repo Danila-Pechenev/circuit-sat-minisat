@@ -233,6 +233,19 @@ void Solver::cancelUntil(int level) {
         for (int c = trail.size()-1; c >= trail_lim[level]; c--){
             Var      x  = var(trail[c]);
             assigns [x] = l_Undef;
+
+            // Circuit-SAT:
+            //
+            jFrontiers.erase(x);
+
+            for (Var user: csat_instance->get()->getGateUsers(x)) 
+            {
+                if (assigns[user] != l_Undef)
+                {
+                    jFrontiers.insert(x);
+                }
+            }
+
             if (phase_saving > 1 || (phase_saving == 1 && c > trail_lim.last()))
                 polarity[x] = sign(trail[c]);
             insertVarOrder(x); }
@@ -245,9 +258,38 @@ void Solver::cancelUntil(int level) {
 //=================================================================================================
 // Major methods:
 
+Var Solver::pickBranchjFParent()
+{
+    vec<Var> toDelete;
+    Var branchjFParent = var_Undef;
+    for (Var jFrontier: jFrontiers)
+    {
+        for (Var jFParent: csat_instance->get()->getGateOperands(jFrontier))
+        {
+            if (assigns[jFParent] == l_Undef)
+            {
+                branchjFParent = jFParent;
+                goto stop;
+            }
+        }
+
+        toDelete.push(jFrontier);
+    }
+
+    stop:
+    for (uint i = 0; i < toDelete.size(); ++i)
+    {
+        jFrontiers.erase(toDelete[i]);
+    }
+
+    return branchjFParent;
+}
+
 Lit Solver::pickBranchLit()
 {
-    Var next = var_Undef;
+    // Original implementation:
+    //
+    /*Var next = var_Undef;
 
     // Random decision (default: false):
     if (drand(random_seed) < random_var_freq && !order_heap.empty()){
@@ -261,7 +303,12 @@ Lit Solver::pickBranchLit()
             next = var_Undef;
             break;
         }else
-            next = order_heap.removeMin();
+            next = order_heap.removeMin();*/
+
+
+    // Circuit-SAT implementation:
+    //
+    Var next = pickBranchjFParent();
 
     // Choose polarity based on different polarity modes (global or per-variable):
     if (next == var_Undef)
@@ -488,6 +535,10 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
     assigns[var(p)] = lbool(!sign(p));
     vardata[var(p)] = mkVarData(from, decisionLevel());
     trail.push_(p);
+    
+    // Circuit-SAT:
+    //
+    jFrontiers.insert(var(p));
 }
 
 
