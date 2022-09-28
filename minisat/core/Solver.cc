@@ -262,21 +262,29 @@ Var Solver::pickBranchjFParent()
 {
     vec<Var> toDelete;
     Var branchjFParent = var_Undef;
+    double maxActivity = -1;
     for (Var jFrontier: jFrontiers)
     {
+        bool real_jFrontier = false;
         for (Var jFParent: csat_instance->get()->getGateOperands(jFrontier))
         {
             if (assigns[jFParent] == l_Undef)
             {
-                branchjFParent = jFParent;
-                goto stop;
+                real_jFrontier = true;
+                if (activity[jFParent] > maxActivity && decision[jFParent])
+                {
+                    branchjFParent = jFParent;
+                    maxActivity = activity[jFParent];
+                }
             }
         }
 
-        toDelete.push(jFrontier);
+        if (!real_jFrontier)
+        {
+            toDelete.push(jFrontier);
+        }
     }
 
-    stop:
     for (uint i = 0; i < toDelete.size(); ++i)
     {
         jFrontiers.erase(toDelete[i]);
