@@ -19,6 +19,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 **************************************************************************************************/
 
 #include <math.h>
+#include <queue>
 
 #include "minisat/mtl/Alg.h"
 #include "minisat/mtl/Sort.h"
@@ -259,6 +260,41 @@ void Solver::cancelUntil(int level) {
 
 //=================================================================================================
 // Major methods:
+
+void Solver::count_paths_to_output()
+{
+    std::queue<std::pair<Var, int>> q;
+    
+    for (Var output: csat_instance->get()->getOutputGates())
+    {
+        paths_to_output[output] = 1;
+        for (Var parent: csat_instance->get()->getGateOperands(output))
+        {
+            q.push(std::make_pair(parent, 1));
+        }
+    }
+
+    while (!q.empty())
+    {
+        auto gate_info = q.front();
+        Var gate = gate_info.first;
+        int number = gate_info.second;
+        q.pop();
+
+        if (!paths_to_output.has(gate))
+        {
+            paths_to_output[gate] = 0;
+        }
+
+        paths_to_output[gate] += number;
+        int plus_number_of_paths = paths_to_output[gate];
+
+        for (Var parent: csat_instance->get()->getGateOperands(gate))
+        {
+            q.push(std::make_pair(parent, plus_number_of_paths));
+        }
+    }
+}
 
 Var Solver::pickBranchjFParent()
 {

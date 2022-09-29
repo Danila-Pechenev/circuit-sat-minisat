@@ -156,6 +156,7 @@ public:
     // Circuit-SAT:
     //
     std::unique_ptr<csat::DAG>* csat_instance;
+    void count_paths_to_output();
 
 protected:
 
@@ -305,6 +306,7 @@ protected:
     //
     std::set<Var> jFrontiers;
     Var pickBranchjFParent();
+    VMap<int> paths_to_output;
 };
 
 
