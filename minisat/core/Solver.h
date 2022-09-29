@@ -306,7 +306,7 @@ protected:
     //
     std::set<Var> jFrontiers;
     Var pickBranchjFParent();
-    VMap<int> paths_to_output;
+    std::vector<int> paths_to_output;
 };
 
 

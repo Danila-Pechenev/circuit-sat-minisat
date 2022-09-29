@@ -263,35 +263,58 @@ void Solver::cancelUntil(int level) {
 
 void Solver::count_paths_to_output()
 {
-    std::queue<std::pair<Var, int>> q;
+    int number_of_gates = csat_instance->get()->getNumberOfGates();
+    std::vector<bool> watched(number_of_gates, false);
+    paths_to_output.reserve(number_of_gates);
+    for (int i = 0; i < number_of_gates; ++i)
+    {
+        paths_to_output[i] = 0;
+    }
+
+    std::queue<Var> q;
     
     for (Var output: csat_instance->get()->getOutputGates())
     {
         paths_to_output[output] = 1;
+        watched[output] = true;
         for (Var parent: csat_instance->get()->getGateOperands(output))
         {
-            q.push(std::make_pair(parent, 1));
+            q.push(parent);
         }
     }
 
     while (!q.empty())
     {
-        auto gate_info = q.front();
-        Var gate = gate_info.first;
-        int number = gate_info.second;
+        start:
+        Var gate = q.front();
         q.pop();
 
-        if (!paths_to_output.has(gate))
+        if (watched[gate])
         {
-            paths_to_output[gate] = 0;
+            continue;
         }
 
-        paths_to_output[gate] += number;
-        int plus_number_of_paths = paths_to_output[gate];
+        int count_paths = 0;
+        for (Var user: csat_instance->get()->getGateUsers(gate))
+        {
+            if (!watched[user])
+            {
+                q.push(gate);
+                goto start;
+            }
+
+            count_paths += paths_to_output[user];
+        }
+
+        paths_to_output[gate] = count_paths;
+        watched[gate] = true;
 
         for (Var parent: csat_instance->get()->getGateOperands(gate))
         {
-            q.push(std::make_pair(parent, plus_number_of_paths));
+            if (!watched[parent])
+            {
+                q.push(parent);
+            }   
         }
     }
 }
@@ -300,6 +323,7 @@ Var Solver::pickBranchjFParent()
 {
     vec<Var> toDelete;
     Var branchjFParent = var_Undef;
+    int maxPaths = -1;
     for (Var jFrontier: jFrontiers)
     {
         bool real_jFrontier = false;
@@ -308,10 +332,10 @@ Var Solver::pickBranchjFParent()
             if (assigns[jFParent] == l_Undef)
             {
                 real_jFrontier = true;
-                if (decision[jFParent])
+                if (paths_to_output[jFParent] > maxPaths && decision[jFParent])
                 {
                     branchjFParent = jFParent;
-                    goto stop;
+                    maxPaths = paths_to_output[jFParent];
                 }
             }
         }
@@ -322,7 +346,6 @@ Var Solver::pickBranchjFParent()
         }
     }
 
-    stop:
     for (uint i = 0; i < toDelete.size(); ++i)
     {
         jFrontiers.erase(toDelete[i]);
