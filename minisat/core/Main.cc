@@ -109,7 +109,7 @@ int main(int argc, char** argv)
 
         auto csat_instance = parser.instantiate();
         S.csat_instance = &csat_instance;
-        S.count_paths_to_output();  // it's bad to do that, but...
+        S.count_distances();  // it's bad to do that, but...
 
         BenchToCNF bench_to_cnf_parser;
         bench_to_cnf_parser.convert_to_cnf(file);

@@ -261,58 +261,41 @@ void Solver::cancelUntil(int level) {
 //=================================================================================================
 // Major methods:
 
-void Solver::count_paths_to_output()
+void Solver::count_distances()
 {
     int number_of_gates = csat_instance->get()->getNumberOfGates();
-    std::vector<bool> watched(number_of_gates, false);
-    paths_to_output.reserve(number_of_gates);
+    distance_to_output.reserve(number_of_gates);
     for (int i = 0; i < number_of_gates; ++i)
     {
-        paths_to_output[i] = 0;
+        distance_to_output[i] = 0;
     }
 
     std::queue<Var> q;
     
     for (Var output: csat_instance->get()->getOutputGates())
     {
-        paths_to_output[output] = 1;
-        watched[output] = true;
+        distance_to_output[output] = 0;
         for (Var parent: csat_instance->get()->getGateOperands(output))
         {
-            q.push(parent);
+            if (distance_to_output[parent] == 0)
+            {
+                distance_to_output[parent] = 1;
+                q.push(parent);
+            }
         }
     }
 
     while (!q.empty())
     {
-        start:
         Var gate = q.front();
         q.pop();
 
-        if (watched[gate])
-        {
-            continue;
-        }
-
-        int count_paths = 0;
-        for (Var user: csat_instance->get()->getGateUsers(gate))
-        {
-            if (!watched[user])
-            {
-                q.push(gate);
-                goto start;
-            }
-
-            count_paths += paths_to_output[user];
-        }
-
-        paths_to_output[gate] = count_paths;
-        watched[gate] = true;
-
+        int distance = distance_to_output[gate] + 1;
         for (Var parent: csat_instance->get()->getGateOperands(gate))
         {
-            if (!watched[parent])
+            if (distance_to_output[parent] == 0)
             {
+                distance_to_output[parent] = distance;
                 q.push(parent);
             }   
         }
@@ -323,7 +306,7 @@ Var Solver::pickBranchjFParent()
 {
     vec<Var> toDelete;
     Var branchjFParent = var_Undef;
-    int maxPaths = -1;
+    int minDistance = 1000000000;
     for (Var jFrontier: jFrontiers)
     {
         bool real_jFrontier = false;
@@ -332,10 +315,10 @@ Var Solver::pickBranchjFParent()
             if (assigns[jFParent] == l_Undef)
             {
                 real_jFrontier = true;
-                if (paths_to_output[jFParent] > maxPaths && decision[jFParent])
+                if (distance_to_output[jFParent] < minDistance && decision[jFParent])
                 {
                     branchjFParent = jFParent;
-                    maxPaths = paths_to_output[jFParent];
+                    minDistance = distance_to_output[jFParent];
                 }
             }
         }
