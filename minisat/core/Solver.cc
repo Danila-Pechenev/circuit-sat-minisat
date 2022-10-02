@@ -242,7 +242,7 @@ void Solver::cancelUntil(int level) {
             {
                 if (assigns[user] != l_Undef)
                 {
-                    jFrontiers.insert(x);
+                    jFrontiers.insert(user);
                 }
             }
 
