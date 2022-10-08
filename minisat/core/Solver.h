@@ -156,6 +156,8 @@ public:
     // Circuit-SAT:
     //
     std::unique_ptr<csat::DAG>* csat_instance;
+    std::map<int, std::pair<int, int>> polarities;
+    void set_default_polarities();
 
 protected:
 

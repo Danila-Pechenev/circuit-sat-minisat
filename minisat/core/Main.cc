@@ -133,6 +133,7 @@ int main(int argc, char** argv)
         
         parse_DIMACS(in, S, (bool)strictp);
         gzclose(in);
+
         FILE* res = (argc >= 3) ? fopen(argv[2], "wb") : NULL;
         
         if (S.verbosity > 0){
@@ -159,7 +160,8 @@ int main(int argc, char** argv)
             printf("UNSATISFIABLE\n");
             exit(20);
         }
-        
+
+        S.set_default_polarities();
         vec<Lit> dummy;
         lbool ret = S.solveLimited(dummy);
         if (S.verbosity > 0){
