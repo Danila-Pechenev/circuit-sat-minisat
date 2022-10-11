@@ -82,26 +82,6 @@ namespace Minisat
             {
                 cnt++;
                 readClause(in, S, lits);
-
-                for (int i = 0; i < lits.size(); i++)
-                {
-                    auto lit = lits[i];
-                    auto v = var(lit);
-                    if (S.polarities.count(v) == 0)
-                    {
-                        S.polarities[v] = std::make_pair(0, 0);
-                    }
-
-                    if (sign(lit))
-                    {
-                        ++S.polarities[v].first;
-                    }
-                    else
-                    {
-                        ++S.polarities[v].second;
-                    }
-                }
-
                 S.addClause_(lits);
             }
         }

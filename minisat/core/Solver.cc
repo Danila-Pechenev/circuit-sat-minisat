@@ -36,7 +36,7 @@ static DoubleOption opt_var_decay(_cat, "var-decay", "The variable activity deca
 static DoubleOption opt_clause_decay(_cat, "cla-decay", "The clause activity decay factor", 0.999, DoubleRange(0, false, 1, false));
 static DoubleOption opt_random_var_freq(_cat, "rnd-freq", "The frequency with which the decision heuristic tries to choose a random variable", 0, DoubleRange(0, true, 1, true));
 static DoubleOption opt_random_seed(_cat, "rnd-seed", "Used by the random variable selection", 91648253, DoubleRange(0, false, HUGE_VAL, false));
-static IntOption opt_ccmin_mode(_cat, "ccmin-mode", "Controls conflict clause minimization (0=none, 1=basic, 2=deep)", 1, IntRange(0, 2));
+static IntOption opt_ccmin_mode(_cat, "ccmin-mode", "Controls conflict clause minimization (0=none, 1=basic, 2=deep)", 1, IntRange(0, 2)); // 2 -> 1
 static IntOption opt_phase_saving(_cat, "phase-saving", "Controls the level of phase saving (0=none, 1=limited, 2=full)", 2, IntRange(0, 2));
 static BoolOption opt_rnd_init_act(_cat, "rnd-init", "Randomize the initial activity", false);
 static BoolOption opt_luby_restart(_cat, "luby", "Use the Luby restart sequence", true);
@@ -106,7 +106,7 @@ Var Solver::newVar(lbool upol, bool dvar)
     vardata.insert(v, mkVarData(CRef_Undef, 0));
     activity.insert(v, rnd_init_act ? drand(random_seed) * 0.00001 : 0);
     seen.insert(v, 0);
-    polarity.insert(v, true);
+    polarity.insert(v, false);
     user_pol.insert(v, upol);
     decision.reserve(v);
     trail.capacity(v + 1);
@@ -238,9 +238,51 @@ void Solver::cancelUntil(int level)
 
 void Solver::set_default_polarities()
 {
-    for (const auto &[key, value] : polarities)
+    std::map<int, std::pair<int, int>> polarities;
+    for (int i = 0; i < clauses.size(); ++i)
     {
-        polarity[key] = value.first > value.second;
+        Clause &clause = ca[clauses[i]];
+        for (int j = 0; j < clause.size(); ++j)
+        {
+            auto lit = clause[j];
+            auto v = var(lit);
+            if (polarities.count(v) == 0)
+            {
+                polarities[v] = std::make_pair(0, 0);
+            }
+
+            if (sign(lit))
+            {
+                ++polarities[v].first;
+            }
+            else
+            {
+                ++polarities[v].second;
+            }
+        }
+    }
+
+    for (int var = 0; var < nVars(); ++var)
+    {
+        auto operation = csat_instance->get()->getGateType(var);
+        if (operation == csat::GateType::AND || operation == csat::GateType::NOR)
+        {
+            polarity[var] = true;
+        }
+        else if (operation == csat::GateType::NOT)
+        {
+            auto operand = csat_instance->get()->getGateOperands(var)[0];
+            auto operand_operation = csat_instance->get()->getGateType(operand);
+            if ((operand_operation != csat::GateType::INPUT && operand_operation != csat::GateType::AND && operand_operation != csat::GateType::NOR) ||
+                (operand_operation == csat::GateType::INPUT && polarities[operand].first < polarities[operand].second))
+            {
+                polarity[var] = true;
+            }
+        }
+        else if (operation == csat::GateType::INPUT)
+        {
+            polarity[var] = polarities[var].first >= polarities[var].second;
+        }
     }
 }
 
