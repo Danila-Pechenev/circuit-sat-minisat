@@ -1126,6 +1126,28 @@ void Solver::printStats() const
     printf("CPU time              : %g s\n", cpu_time);
 }
 
+bool Solver::verifySolution()
+{
+    int n_inputs = csat_instance->get()->getInputGates().size();
+    auto assignments = csat::VectorAssignment();
+    for (int input = 0; input < n_inputs; ++input)
+    {
+        assignments.assign(input, model[input] == l_True ? csat::GateState::TRUE : csat::GateState::FALSE);
+    }
+
+    auto evaluation = csat_instance->get()->evaluateCircuit(assignments);
+
+    for (auto output : csat_instance->get()->getOutputGates())
+    {
+        if (evaluation->getGateState(output) == csat::GateState::FALSE)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 //=================================================================================================
 // Garbage Collection methods:
 

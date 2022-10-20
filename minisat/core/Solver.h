@@ -157,6 +157,7 @@ namespace Minisat
         //
         std::unique_ptr<csat::DAG> *csat_instance;
         void set_default_polarities();
+        bool verifySolution();
 
     protected:
         // Helper structures:
