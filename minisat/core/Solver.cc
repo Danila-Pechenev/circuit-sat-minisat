@@ -262,7 +262,8 @@ void Solver::set_default_polarities()
         }
     }
 
-    for (int var = 0; var < nVars(); ++var)
+    int n_vars = nVars();
+    for (int var = 0; var < n_vars; ++var)
     {
         auto operation = csat_instance->get()->getGateType(var);
         if (operation == csat::GateType::AND || operation == csat::GateType::NOR)
@@ -282,6 +283,10 @@ void Solver::set_default_polarities()
         else if (operation == csat::GateType::INPUT)
         {
             polarity[var] = polarities[var].first >= polarities[var].second;
+        }
+        else if (operation == csat::GateType::XOR || operation == csat::GateType::NXOR)
+        {
+            // ???
         }
     }
 }
@@ -1128,25 +1133,6 @@ void Solver::printStats() const
 
 bool Solver::verifySolution()
 {
-    // int n_inputs = csat_instance->get()->getInputGates().size();
-    // auto assignments = csat::VectorAssignment();
-    // for (int input = 0; input < n_inputs; ++input)
-    // {
-    //     assignments.assign(input, model[input] == l_True ? csat::GateState::TRUE : csat::GateState::FALSE);
-    // }
-
-    // auto evaluation = csat_instance->get()->evaluateCircuit(assignments);
-
-    // for (auto output : csat_instance->get()->getOutputGates())
-    // {
-    //     if (evaluation->getGateState(output) == csat::GateState::FALSE)
-    //     {
-    //         return false;
-    //     }
-    // }
-
-    // return true;
-
     int n_inputs = csat_instance->get()->getInputGates().size();
     int n_gates = csat_instance->get()->getNumberOfGates();
     for (int gate = n_inputs; gate < n_gates; ++gate)
