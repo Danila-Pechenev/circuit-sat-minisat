@@ -1128,18 +1128,115 @@ void Solver::printStats() const
 
 bool Solver::verifySolution()
 {
-    int n_inputs = csat_instance->get()->getInputGates().size();
-    auto assignments = csat::VectorAssignment();
-    for (int input = 0; input < n_inputs; ++input)
-    {
-        assignments.assign(input, model[input] == l_True ? csat::GateState::TRUE : csat::GateState::FALSE);
-    }
+    // int n_inputs = csat_instance->get()->getInputGates().size();
+    // auto assignments = csat::VectorAssignment();
+    // for (int input = 0; input < n_inputs; ++input)
+    // {
+    //     assignments.assign(input, model[input] == l_True ? csat::GateState::TRUE : csat::GateState::FALSE);
+    // }
 
-    auto evaluation = csat_instance->get()->evaluateCircuit(assignments);
+    // auto evaluation = csat_instance->get()->evaluateCircuit(assignments);
+
+    // for (auto output : csat_instance->get()->getOutputGates())
+    // {
+    //     if (evaluation->getGateState(output) == csat::GateState::FALSE)
+    //     {
+    //         return false;
+    //     }
+    // }
+
+    // return true;
+
+    int n_inputs = csat_instance->get()->getInputGates().size();
+    int n_gates = csat_instance->get()->getNumberOfGates();
+    for (int gate = n_inputs; gate < n_gates; ++gate)
+    {
+        auto operation = csat_instance->get()->getGateType(gate);
+        bool result;
+        if (operation == csat::GateType::AND)
+        {
+            result = true;
+            for (auto const &operand : csat_instance->get()->getGateOperands(gate))
+            {
+                if (model[operand] != l_True)
+                {
+                    result = false;
+                }
+            }
+        }
+        else if (operation == csat::GateType::NAND)
+        {
+            result = false;
+            for (auto const &operand : csat_instance->get()->getGateOperands(gate))
+            {
+                if (model[operand] != l_True)
+                {
+                    result = true;
+                }
+            }
+        }
+        else if (operation == csat::GateType::OR)
+        {
+            result = false;
+            for (auto const &operand : csat_instance->get()->getGateOperands(gate))
+            {
+                if (model[operand] == l_True)
+                {
+                    result = true;
+                }
+            }
+        }
+        else if (operation == csat::GateType::NOR)
+        {
+            result = true;
+            for (auto const &operand : csat_instance->get()->getGateOperands(gate))
+            {
+                if (model[operand] == l_True)
+                {
+                    result = false;
+                }
+            }
+        }
+        else if (operation == csat::GateType::XOR)
+        {
+            int count_true = 0;
+            for (auto const &operand : csat_instance->get()->getGateOperands(gate))
+            {
+                if (model[operand] == l_True)
+                {
+                    ++count_true;
+                }
+            }
+
+            result = count_true % 2 != 0;
+        }
+        else if (operation == csat::GateType::NXOR)
+        {
+            int count_true = 0;
+            for (auto const &operand : csat_instance->get()->getGateOperands(gate))
+            {
+                if (model[operand] == l_True)
+                {
+                    ++count_true;
+                }
+            }
+
+            result = count_true % 2 == 0;
+        }
+        else
+        {
+            result = (model[csat_instance->get()->getGateOperands(gate)[0]] != l_True);
+        }
+
+        if ((model[gate] == l_True) != result)
+        {
+            return false;
+        }
+    }
 
     for (auto output : csat_instance->get()->getOutputGates())
     {
-        if (evaluation->getGateState(output) == csat::GateState::FALSE)
+        if (model[output] != l_True)
         {
             return false;
         }
