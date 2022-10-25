@@ -18,23 +18,21 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
-#include <minisat/core/Config.h>
-
 #include <errno.h>
 #include <zlib.h>
+#include <sstream>
+#include <fstream>
 
 #include "minisat/utils/System.h"
 #include "minisat/utils/ParseUtils.h"
 #include "minisat/utils/Options.h"
 #include "minisat/core/Dimacs.h"
 #include "minisat/core/Solver.h"
+#include <minisat/core/Config.h>
 
 #include "/home/danila/CircuitSAT/circuitsat/core/source/structures/parser.hpp"
 #include "/home/danila/CircuitSAT/circuitsat/baseline/cpp/src/parser/parser.hpp"
 #include "/home/danila/CircuitSAT/circuitsat/baseline/cpp/src/utils/utils.hpp"
-
-#include <sstream>
-#include <fstream>
 
 using namespace Minisat;
 
@@ -58,6 +56,7 @@ static void SIGINT_exit(int)
         printf("\n");
         printf("*** INTERRUPTED ***\n");
     }
+
     _exit(1);
 }
 
@@ -91,9 +90,14 @@ int main(int argc, char **argv)
 
         // Try to set resource limits:
         if (cpu_lim != 0)
+        {
             limitTime(cpu_lim);
+        }
+
         if (mem_lim != 0)
+        {
             limitMemory(mem_lim);
+        }
 
         if (argc == 1)
         {
@@ -137,7 +141,9 @@ int main(int argc, char **argv)
         initial_time = cpuTime();
         gzFile in = gzopen("cnf_file.dimacs", "rb");
         if (in == NULL)
+        {
             printf("ERROR! Could not open file: cnf_file.dimacs"), exit(1);
+        }
 
         if (S.verbosity > 0)
         {
@@ -171,7 +177,10 @@ int main(int argc, char **argv)
         if (!S.simplify())
         {
             if (res != NULL)
+            {
                 fprintf(res, "UNSAT\n"), fclose(res);
+            }
+
             if (S.verbosity > 0)
             {
                 printf("===============================================================================\n");
@@ -179,6 +188,7 @@ int main(int argc, char **argv)
                 S.printStats();
                 printf("\n");
             }
+
             printf("UNSATISFIABLE\n");
             exit(20);
         }
@@ -193,6 +203,7 @@ int main(int argc, char **argv)
             S.printStats();
             printf("\n");
         }
+
         printf(ret == l_True ? "SATISFIABLE\n" : ret == l_False ? "UNSATISFIABLE\n"
                                                                 : "INDETERMINATE\n");
 
@@ -202,12 +213,17 @@ int main(int argc, char **argv)
             if (check)
             {
                 if (S.verbosity > 0)
+                {
                     printf("Result is verified. OK\n");
+                }
             }
             else
             {
                 if (S.verbosity > 0)
+                {
                     printf("Verifying FAILED\n");
+                }
+
                 exit(1);
             }
         }
@@ -219,14 +235,24 @@ int main(int argc, char **argv)
                 fprintf(res, "SAT\n");
                 int n_inputs = csat_instance->getInputGates().size();
                 for (int i = 0; i < n_inputs; i++)
+                {
                     if (S.model[i] != l_Undef)
+                    {
                         fprintf(res, "%s%s%d", (i == 0) ? "" : " ", (S.model[i] == l_True) ? "" : "-", i + 1);
+                    }
+                }
+
                 fprintf(res, " 0\n");
             }
             else if (ret == l_False)
+            {
                 fprintf(res, "UNSAT\n");
+            }
             else
+            {
                 fprintf(res, "INDET\n");
+            }
+
             fclose(res);
         }
 

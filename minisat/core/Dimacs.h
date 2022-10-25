@@ -41,10 +41,16 @@ namespace Minisat
         {
             parsed_lit = parseInt(in);
             if (parsed_lit == 0)
+            {
                 break;
+            }
+
             var = abs(parsed_lit) - 1;
             while (var >= S.nVars())
+            {
                 S.newVar();
+            }
+
             lits.push((parsed_lit > 0) ? mkLit(var) : ~mkLit(var));
         }
     }
@@ -60,7 +66,9 @@ namespace Minisat
         {
             skipWhitespace(in);
             if (*in == EOF)
+            {
                 break;
+            }
             else if (*in == 'p')
             {
                 if (eagerMatch(in, "p cnf"))
@@ -77,7 +85,9 @@ namespace Minisat
                 }
             }
             else if (*in == 'c' || *in == 'p')
+            {
                 skipLine(in);
+            }
             else
             {
                 cnt++;
@@ -85,8 +95,11 @@ namespace Minisat
                 S.addClause_(lits);
             }
         }
+
         if (strictp && cnt != clauses)
+        {
             printf("PARSE ERROR! DIMACS header mismatch: wrong number of clauses\n");
+        }
     }
 
     // Inserts problem into solver.

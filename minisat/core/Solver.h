@@ -18,8 +18,6 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
-#include <minisat/core/Config.h>
-
 #ifndef Minisat_Solver_h
 #define Minisat_Solver_h
 
@@ -29,6 +27,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "minisat/mtl/IntMap.h"
 #include "minisat/utils/Options.h"
 #include "minisat/core/SolverTypes.h"
+#include <minisat/core/Config.h>
 
 #include "/home/danila/CircuitSAT/circuitsat/core/source/structures/parser.hpp"
 
@@ -344,7 +343,9 @@ namespace Minisat
     inline void Solver::insertVarOrder(Var x)
     {
         if (!order_heap.inHeap(x) && decision[x])
+        {
             order_heap.insert(x);
+        }
     }
 
     inline void Solver::varDecayActivity() { var_inc *= (1 / var_decay); }
@@ -355,7 +356,10 @@ namespace Minisat
         {
             // Rescale:
             for (int i = 0; i < nVars(); i++)
+            {
                 activity[i] *= 1e-100;
+            }
+
             var_inc *= 1e-100;
         }
 
@@ -446,9 +450,13 @@ namespace Minisat
     inline void Solver::setDecisionVar(Var v, bool b)
     {
         if (b && !decision[v])
+        {
             dec_vars++;
+        }
         else if (!b && decision[v])
+        {
             dec_vars--;
+        }
 
         decision[v] = b;
         insertVarOrder(v);
