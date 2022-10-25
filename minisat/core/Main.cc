@@ -104,10 +104,10 @@ int main(int argc, char **argv)
             printf("ERROR! Not enough arguments"), exit(1);
         }
 
-        double initial_time = cpuTime();
-
         std::string bench_file = argv[1];
         std::ifstream file(bench_file);
+
+        double initial_time = cpuTime();
 
         if (!file.is_open())
         {
