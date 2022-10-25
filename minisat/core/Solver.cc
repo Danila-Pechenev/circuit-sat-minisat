@@ -18,12 +18,20 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
+// Configure the solver
+#define CCMIN_MODE 1
+#define BACKPROP
+#define POLARITY_INIT_HEURISTIC
+// --------------------
+
 #include <math.h>
 
 #include "minisat/mtl/Alg.h"
 #include "minisat/mtl/Sort.h"
 #include "minisat/utils/System.h"
 #include "minisat/core/Solver.h"
+
+#include <queue>
 
 using namespace Minisat;
 
@@ -36,7 +44,7 @@ static DoubleOption opt_var_decay(_cat, "var-decay", "The variable activity deca
 static DoubleOption opt_clause_decay(_cat, "cla-decay", "The clause activity decay factor", 0.999, DoubleRange(0, false, 1, false));
 static DoubleOption opt_random_var_freq(_cat, "rnd-freq", "The frequency with which the decision heuristic tries to choose a random variable", 0, DoubleRange(0, true, 1, true));
 static DoubleOption opt_random_seed(_cat, "rnd-seed", "Used by the random variable selection", 91648253, DoubleRange(0, false, HUGE_VAL, false));
-static IntOption opt_ccmin_mode(_cat, "ccmin-mode", "Controls conflict clause minimization (0=none, 1=basic, 2=deep)", 1, IntRange(0, 2)); // 2 -> 1
+static IntOption opt_ccmin_mode(_cat, "ccmin-mode", "Controls conflict clause minimization (0=none, 1=basic, 2=deep)", CCMIN_MODE, IntRange(0, 2)); // 2 -> 1
 static IntOption opt_phase_saving(_cat, "phase-saving", "Controls the level of phase saving (0=none, 1=limited, 2=full)", 2, IntRange(0, 2));
 static BoolOption opt_rnd_init_act(_cat, "rnd-init", "Randomize the initial activity", false);
 static BoolOption opt_luby_restart(_cat, "luby", "Use the Luby restart sequence", true);
@@ -223,6 +231,19 @@ void Solver::cancelUntil(int level)
         {
             Var x = var(trail[c]);
             assigns[x] = l_Undef;
+
+#ifdef BACKPROP
+            jFrontiers.erase(x);
+
+            for (Var user : csat_instance->get()->getGateUsers(x))
+            {
+                if (assigns[user] != l_Undef)
+                {
+                    jFrontiers.insert(user);
+                }
+            }
+#endif
+
             if (phase_saving > 1 || (phase_saving == 1 && c > trail_lim.last()))
                 polarity[x] = sign(trail[c]);
             insertVarOrder(x);
@@ -235,6 +256,8 @@ void Solver::cancelUntil(int level)
 
 //=================================================================================================
 // Major methods:
+
+#ifdef POLARITY_INIT_HEURISTIC
 
 void Solver::set_default_polarities()
 {
@@ -291,6 +314,98 @@ void Solver::set_default_polarities()
     }
 }
 
+#endif
+
+#ifdef BACKPROP
+
+void Solver::count_distances()
+{
+    int number_of_gates = csat_instance->get()->getNumberOfGates();
+    distance_to_output.reserve(number_of_gates);
+    for (int i = 0; i < number_of_gates; ++i)
+    {
+        distance_to_output[i] = 0;
+    }
+
+    std::queue<Var> q;
+
+    for (Var output : csat_instance->get()->getOutputGates())
+    {
+        distance_to_output[output] = 0;
+        for (Var parent : csat_instance->get()->getGateOperands(output))
+        {
+            if (distance_to_output[parent] == 0)
+            {
+                distance_to_output[parent] = 1;
+                q.push(parent);
+            }
+        }
+    }
+
+    while (!q.empty())
+    {
+        Var gate = q.front();
+        q.pop();
+
+        int distance = distance_to_output[gate] + 1;
+        for (Var parent : csat_instance->get()->getGateOperands(gate))
+        {
+            if (distance_to_output[parent] == 0)
+            {
+                distance_to_output[parent] = distance;
+                q.push(parent);
+            }
+        }
+    }
+}
+
+Var Solver::pickBranchjFParent()
+{
+    vec<Var> toDelete;
+    Var branchjFParent = var_Undef;
+    int minDistance = 1000000000;
+    for (Var jFrontier : jFrontiers)
+    {
+        bool real_jFrontier = false;
+        for (Var jFParent : csat_instance->get()->getGateOperands(jFrontier))
+        {
+            if (assigns[jFParent] == l_Undef)
+            {
+                real_jFrontier = true;
+                if (distance_to_output[jFParent] < minDistance && decision[jFParent])
+                {
+                    branchjFParent = jFParent;
+                    minDistance = distance_to_output[jFParent];
+                }
+            }
+        }
+
+        if (!real_jFrontier)
+        {
+            toDelete.push(jFrontier);
+        }
+    }
+
+    for (uint i = 0; i < toDelete.size(); ++i)
+    {
+        jFrontiers.erase(toDelete[i]);
+    }
+
+    return branchjFParent;
+}
+
+Lit Solver::pickBranchLit()
+{
+    Var next = pickBranchjFParent();
+
+    if (next == var_Undef)
+        return lit_Undef;
+
+    return mkLit(next, polarity[next]);
+}
+
+#else
+
 Lit Solver::pickBranchLit()
 {
     Var next = var_Undef;
@@ -323,6 +438,8 @@ Lit Solver::pickBranchLit()
     else
         return mkLit(next, polarity[next]);
 }
+
+#endif
 
 /*_________________________________________________________________________________________________
 |
@@ -568,6 +685,10 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
     assigns[var(p)] = lbool(!sign(p));
     vardata[var(p)] = mkVarData(from, decisionLevel());
     trail.push_(p);
+
+#ifdef BACKPROP
+    jFrontiers.insert(var(p));
+#endif
 }
 
 /*_________________________________________________________________________________________________

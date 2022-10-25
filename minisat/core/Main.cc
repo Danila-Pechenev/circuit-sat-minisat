@@ -18,6 +18,12 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
+// Configure the solver
+#define CCMIN_MODE 1
+#define BACKPROP
+#define POLARITY_INIT_HEURISTIC
+// --------------------
+
 #include <errno.h>
 #include <zlib.h>
 
@@ -116,6 +122,10 @@ int main(int argc, char **argv)
         auto csat_instance = parser.instantiate();
         S.csat_instance = &csat_instance;
 
+#ifdef BACKPROP
+        S.count_distances();
+#endif
+
         BenchToCNF bench_to_cnf_parser;
         bench_to_cnf_parser.convert_to_cnf(file);
         file.close();
@@ -177,7 +187,9 @@ int main(int argc, char **argv)
             exit(20);
         }
 
+#ifdef POLARITY_INIT_HEURISTIC
         S.set_default_polarities();
+#endif
         vec<Lit> dummy;
         lbool ret = S.solveLimited(dummy);
         if (S.verbosity > 0)

@@ -18,6 +18,12 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
+// Configure the solver
+#define CCMIN_MODE 1
+#define BACKPROP
+#define POLARITY_INIT_HEURISTIC
+// --------------------
+
 #ifndef Minisat_Solver_h
 #define Minisat_Solver_h
 
@@ -156,8 +162,15 @@ namespace Minisat
         // Circuit-SAT:
         //
         std::unique_ptr<csat::DAG> *csat_instance;
-        void set_default_polarities();
         bool verifySolution();
+
+#ifdef POLARITY_INIT_HEURISTIC
+        void set_default_polarities();
+#endif
+
+#ifdef BACKPROP
+        void count_distances();
+#endif
 
     protected:
         // Helper structures:
@@ -316,6 +329,14 @@ namespace Minisat
         {
             return (int)(drand(seed) * size);
         }
+
+#ifdef BACKPROP
+        // Circuit-SAT:
+        //
+        std::set<Var> jFrontiers;
+        Var pickBranchjFParent();
+        std::vector<int> distance_to_output;
+#endif
     };
 
     //=================================================================================================
