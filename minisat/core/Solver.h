@@ -325,11 +325,14 @@ namespace Minisat
             return (int)(drand(seed) * size);
         }
 
-#ifdef BACKPROP
         // Circuit-SAT:
         //
+#if defined BACKPROP || defined JFRONTIERS_ACTIVITY
         std::set<Var> jFrontiers;
         Var pickBranchjFParent();
+#endif
+
+#ifdef BACKPROP
         std::vector<int> distance_to_output;
 #endif
     };
@@ -365,7 +368,9 @@ namespace Minisat
 
         // Update order_heap with respect to new activity:
         if (order_heap.inHeap(v))
+        {
             order_heap.decrease(v);
+        }
     }
 
     inline void Solver::claDecayActivity() { cla_inc *= (1 / clause_decay); }

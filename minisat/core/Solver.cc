@@ -38,11 +38,11 @@ static DoubleOption opt_var_decay(_cat, "var-decay", "The variable activity deca
 static DoubleOption opt_clause_decay(_cat, "cla-decay", "The clause activity decay factor", 0.999, DoubleRange(0, false, 1, false));
 static DoubleOption opt_random_var_freq(_cat, "rnd-freq", "The frequency with which the decision heuristic tries to choose a random variable", 0, DoubleRange(0, true, 1, true));
 static DoubleOption opt_random_seed(_cat, "rnd-seed", "Used by the random variable selection", 91648253, DoubleRange(0, false, HUGE_VAL, false));
-static IntOption opt_ccmin_mode(_cat, "ccmin-mode", "Controls conflict clause minimization (0=none, 1=basic, 2=deep)", CCMIN_MODE, IntRange(0, 2)); // 2 -> 1
+static IntOption opt_ccmin_mode(_cat, "ccmin-mode", "Controls conflict clause minimization (0=none, 1=basic, 2=deep)", CCMIN_MODE, IntRange(0, 2));
 static IntOption opt_phase_saving(_cat, "phase-saving", "Controls the level of phase saving (0=none, 1=limited, 2=full)", 2, IntRange(0, 2));
 static BoolOption opt_rnd_init_act(_cat, "rnd-init", "Randomize the initial activity", false);
 static BoolOption opt_luby_restart(_cat, "luby", "Use the Luby restart sequence", true);
-static IntOption opt_restart_first(_cat, "rfirst", "The base restart interval", 100, IntRange(1, INT32_MAX));
+static IntOption opt_restart_first(_cat, "rfirst", "The base restart interval", RFIRST, IntRange(1, INT32_MAX));
 static DoubleOption opt_restart_inc(_cat, "rinc", "Restart interval increase factor", 2, DoubleRange(1, false, HUGE_VAL, false));
 static DoubleOption opt_garbage_frac(_cat, "gc-frac", "The fraction of wasted memory allowed before a garbage collection is triggered", 0.20, DoubleRange(0, false, HUGE_VAL, false));
 static IntOption opt_min_learnts_lim(_cat, "min-learnts", "Minimum learnt clause limit", 0, IntRange(0, INT32_MAX));
@@ -110,7 +110,7 @@ Var Solver::newVar(lbool upol, bool dvar)
     vardata.insert(v, mkVarData(CRef_Undef, 0));
     activity.insert(v, rnd_init_act ? drand(random_seed) * 0.00001 : 0);
     seen.insert(v, 0);
-    polarity.insert(v, false);
+    polarity.insert(v, DEFAULT_POLARITY_VALUE);
     user_pol.insert(v, upol);
     decision.reserve(v);
     trail.capacity(v + 1);
@@ -255,7 +255,7 @@ void Solver::cancelUntil(int level)
             Var x = var(trail[c]);
             assigns[x] = l_Undef;
 
-#ifdef BACKPROP
+#if defined BACKPROP || defined JFRONTIERS_ACTIVITY
             jFrontiers.erase(x);
 
             for (Var user : csat_instance->get()->getGateUsers(x))
@@ -333,7 +333,12 @@ void Solver::set_default_polarities()
         }
         else if (operation == csat::GateType::XOR || operation == csat::GateType::NXOR)
         {
-            // ???
+            // ??? Come up with something...
+            polarity[var] = false;
+        }
+        else
+        {
+            polarity[var] = false;
         }
     }
 }
@@ -417,6 +422,105 @@ Var Solver::pickBranchjFParent()
 
     return branchjFParent;
 }
+
+#elif defined JFRONTIERS_ACTIVITY
+
+Var Solver::pickBranchjFParent()
+{
+    vec<Var> toDelete;
+    Var branchjFParent = var_Undef;
+    double maxActivity = -1;
+    for (Var jFrontier : jFrontiers)
+    {
+        bool real_jFrontier = false;
+        for (Var jFParent : csat_instance->get()->getGateOperands(jFrontier))
+        {
+            if (assigns[jFParent] == l_Undef)
+            {
+                real_jFrontier = true;
+                if (activity[jFParent] > maxActivity && decision[jFParent])
+                {
+                    branchjFParent = jFParent;
+                    maxActivity = activity[jFParent];
+                }
+            }
+        }
+
+        if (!real_jFrontier)
+        {
+            toDelete.push(jFrontier);
+        }
+    }
+
+    for (uint i = 0; i < toDelete.size(); ++i)
+    {
+        jFrontiers.erase(toDelete[i]);
+    }
+
+    return branchjFParent;
+}
+
+#endif
+
+#if defined CSAT_HEURISTIC_START
+
+Lit Solver::pickBranchLit()
+{
+    static bool reset = false;
+    Var next = var_Undef;
+
+    if (starts <= DEFAULT_HEURISTIC_AFTER_N_RESTARTS)
+    {
+        next = pickBranchjFParent();
+    }
+    else
+    {
+        if (!reset)
+        {
+            int n_vars = nVars();
+#ifdef RESET_ACTIVITY
+            for (int var = 0; var < n_vars; ++var)
+            {
+                activity[var] = rnd_init_act ? drand(random_seed) * 0.00001 : 0;
+            }
+
+            rebuildOrderHeap();
+#endif
+
+#if defined RESET_POLARITY && defined POLARITY_INIT_HEURISTIC
+            set_default_polarities();
+#elif defined RESET_POLARITY
+            for (int var = 0; var < n_vars; ++var)
+            {
+                polarity[var] = DEFAULT_POLARITY_VALUE;
+            }
+#endif
+            reset = true;
+        }
+
+        while (next == var_Undef || value(next) != l_Undef || !decision[next])
+        {
+            if (order_heap.empty())
+            {
+                next = var_Undef;
+                break;
+            }
+            else
+            {
+                next = order_heap.removeMin();
+            }
+        }
+    }
+
+    if (next == var_Undef)
+    {
+        return lit_Undef;
+    }
+
+    return mkLit(next, polarity[next]);
+}
+
+#elif defined BACKPROP || defined JFRONTIERS_ACTIVITY
 
 Lit Solver::pickBranchLit()
 {
@@ -754,7 +858,7 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
     vardata[var(p)] = mkVarData(from, decisionLevel());
     trail.push_(p);
 
-#ifdef BACKPROP
+#if defined BACKPROP || defined JFRONTIERS_ACTIVITY
     jFrontiers.insert(var(p));
 #endif
 }
@@ -1166,7 +1270,6 @@ double Solver::progressEstimate() const
   3: 1 1 2 1 1 2 4 1 1 2 1 1 2 4 8
   ...
 
-
  */
 
 static double luby(double y, int x)
@@ -1230,6 +1333,12 @@ lbool Solver::solve_()
         }
 
         curr_restarts++;
+#ifdef CSAT_HEURISTIC_START
+        if (starts == DEFAULT_HEURISTIC_AFTER_N_RESTARTS)
+        {
+            curr_restarts = 0;
+        }
+#endif
     }
 
     if (verbosity >= 1)
