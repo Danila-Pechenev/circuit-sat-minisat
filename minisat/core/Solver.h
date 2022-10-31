@@ -222,6 +222,11 @@ namespace Minisat
         VMap<double> activity; // A heuristic measurement of the activity of a variable.
         VMap<lbool> assigns;   // The current assignments.
         VMap<char> polarity;   // The preferred polarity of each variable.
+
+#if defined CSAT_HEURISTIC_START && defined RESET_POLARITY && defined POLARITY_INIT_HEURISTIC
+        VMap<char> polarity_copy;
+#endif
+
         VMap<lbool> user_pol;  // The users preferred polarity of each variable.
         VMap<char> decision;   // Declares if a variable is eligible for selection in the decision heuristic.
         VMap<VarData> vardata; // Stores reason and level for each variable.

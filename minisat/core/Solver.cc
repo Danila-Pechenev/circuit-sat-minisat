@@ -111,6 +111,11 @@ Var Solver::newVar(lbool upol, bool dvar)
     activity.insert(v, rnd_init_act ? drand(random_seed) * 0.00001 : 0);
     seen.insert(v, 0);
     polarity.insert(v, DEFAULT_POLARITY_VALUE);
+
+#if defined CSAT_HEURISTIC_START && defined RESET_POLARITY && defined POLARITY_INIT_HEURISTIC
+    polarity_copy.insert(v, DEFAULT_POLARITY_VALUE);
+#endif
+
     user_pol.insert(v, upol);
     decision.reserve(v);
     trail.capacity(v + 1);
@@ -341,6 +346,13 @@ void Solver::set_default_polarities()
             polarity[var] = false;
         }
     }
+
+#if defined CSAT_HEURISTIC_START && defined RESET_POLARITY
+    for (int var = 0; var < n_vars; ++var)
+    {
+        polarity_copy[var] = polarity[var];
+    }
+#endif
 }
 
 #endif
@@ -488,7 +500,11 @@ Lit Solver::pickBranchLit()
 #endif
 
 #if defined RESET_POLARITY && defined POLARITY_INIT_HEURISTIC
-            set_default_polarities();
+            for (int var = 0; var < n_vars; ++var)
+            {
+                polarity[var] = polarity_copy[var];
+            }
+
 #elif defined RESET_POLARITY
             for (int var = 0; var < n_vars; ++var)
             {
