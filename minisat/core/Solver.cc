@@ -1349,7 +1349,7 @@ lbool Solver::solve_()
         }
 
         curr_restarts++;
-#ifdef CSAT_HEURISTIC_START
+#if defined CSAT_HEURISTIC_START && defined RESET_RESTARTS
         if (starts == DEFAULT_HEURISTIC_AFTER_N_RESTARTS)
         {
             curr_restarts = 0;

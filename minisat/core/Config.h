@@ -24,9 +24,10 @@
 
 // Define to start solving with Circuit-SAT heuristic
 #define CSAT_HEURISTIC_START
-#define DEFAULT_HEURISTIC_AFTER_N_RESTARTS 10 // Start solving with default Minisat heuristic after N restarts
-#define RESET_ACTIVITY                        // Reset activities after solving with Circuit-SAT heuristic or not
-#define RESET_POLARITY                        // Reset polarities after solving with Circuit-SAT heuristic or not
+#define DEFAULT_HEURISTIC_AFTER_N_RESTARTS 1 // Start solving with default Minisat heuristic after N restarts
+#define RESET_ACTIVITY                       // Reset activities after solving with Circuit-SAT heuristic or not
+// #define RESET_POLARITY                       // Reset polarities after solving with Circuit-SAT heuristic or not
+#define RESET_RESTARTS // Reset restarts after solving with Circuit-SAT heuristic or not
 
 // Define to use polarity initialization heuristic
 #define POLARITY_INIT_HEURISTIC
