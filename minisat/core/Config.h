@@ -18,12 +18,10 @@
 // Define to use back propagation
 #define BACKPROP
 #define COMPARE_BY_ACTIVITY false // Define true to use activity-based back propagation
+#define AVOID_XOR false           // Define true to use avoid-XOR back propagation
 //
 // Define to use jFrontiers-activity heuristic
 // #define JFRONTIERS_ACTIVITY
-//
-// TODO: Define to use avoid-XOR back propagation
-// #define AVOID_XOR_BACKPROP
 //
 // Define to start solving with Circuit-SAT heuristic
 #define CSAT_HEURISTIC_START

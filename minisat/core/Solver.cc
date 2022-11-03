@@ -404,7 +404,9 @@ Var Solver::pickBranchjFParent()
     vec<Var> toDelete;
     Var branchjFParent = var_Undef;
     int minDistance = 1000000000;
+#if COMPARE_BY_ACTIVITY
     int maxActivity = -1;
+#endif
     for (Var jFrontier : jFrontiers)
     {
         bool real_jFrontier = false;
@@ -419,13 +421,17 @@ Var Solver::pickBranchjFParent()
                     {
                         branchjFParent = jFParent;
                         minDistance = distance_to_output[jFParent];
+#if COMPARE_BY_ACTIVITY
                         maxActivity = activity[jFParent];
+#endif
                     }
-                    else if (COMPARE_BY_ACTIVITY && distance_to_output[jFParent] == minDistance && activity[jFParent] > maxActivity)
+#if COMPARE_BY_ACTIVITY
+                    else if (distance_to_output[jFParent] == minDistance && activity[jFParent] > maxActivity)
                     {
                         branchjFParent = jFParent;
                         maxActivity = activity[jFParent];
                     }
+#endif
                 }
             }
         }
