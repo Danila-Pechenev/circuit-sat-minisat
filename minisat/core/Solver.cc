@@ -434,7 +434,7 @@ Var Solver::pickBranchjFParent()
 
                     auto gate_type = csat_instance->get()->getGateType(jFParent);
                     auto branch_gate_type = csat_instance->get()->getGateType(branchjFParent);
-                    if ((gate_type != csat::GateType::XOR || gate_type != csat::GateType::NXOR) && (branch_gate_type == csat::GateType::XOR && branch_gate_type == csat::GateType::NXOR))
+                    if ((gate_type != csat::GateType::XOR && gate_type != csat::GateType::NXOR) && (branch_gate_type == csat::GateType::XOR || branch_gate_type == csat::GateType::NXOR))
                     {
                         continue;
                     }
