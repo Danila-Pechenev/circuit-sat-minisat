@@ -17,7 +17,7 @@
 //
 // Define to use back propagation
 #define BACKPROP
-#define COMPARE_BY_ACTIVITY false // Define to use activity-based back propagation
+#define COMPARE_BY_ACTIVITY false // Define true to use activity-based back propagation
 //
 // Define to use jFrontiers-activity heuristic
 // #define JFRONTIERS_ACTIVITY
