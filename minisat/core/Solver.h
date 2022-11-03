@@ -163,7 +163,7 @@ namespace Minisat
         void set_default_polarities();
 #endif
 
-#if defined BACKPROP_ACTIVITY
+#if defined BACKPROP || defined BACKPROP_ACTIVITY
         void count_distances();
 #endif
 
