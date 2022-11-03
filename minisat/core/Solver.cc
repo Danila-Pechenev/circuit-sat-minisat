@@ -407,7 +407,7 @@ Var Solver::pickBranchjFParent()
 #if COMPARE_BY_ACTIVITY
     int maxActivity = -1;
 #endif
-#if PREFER_XOR
+#if PREFER_XOR || AVOID_XOR
     bool first_watch = true;
 #endif
     for (Var jFrontier : jFrontiers)
@@ -420,8 +420,13 @@ Var Solver::pickBranchjFParent()
                 real_jFrontier = true;
                 if (decision[jFParent])
                 {
-#if PREFER_XOR
-                    if (first_watch)
+#if PREFER_XOR || AVOID_XOR
+                    auto gate_type = csat_instance->get()->getGateType(jFParent);
+                    auto branch_gate_type = csat_instance->get()->getGateType(branchjFParent);
+
+                    if (first_watch ||
+                        (PREFER_XOR && branch_gate_type != csat::GateType::XOR && branch_gate_type != csat::GateType::NXOR && (gate_type == csat::GateType::XOR || gate_type == csat::GateType::NXOR)) ||
+                        (AVOID_XOR && (branch_gate_type == csat::GateType::XOR || branch_gate_type == csat::GateType::NXOR) && gate_type != csat::GateType::XOR && gate_type != csat::GateType::NXOR))
                     {
                         branchjFParent = jFParent;
                         minDistance = distance_to_output[jFParent];
@@ -431,10 +436,13 @@ Var Solver::pickBranchjFParent()
                         first_watch = false;
                         continue;
                     }
-
-                    auto gate_type = csat_instance->get()->getGateType(jFParent);
-                    auto branch_gate_type = csat_instance->get()->getGateType(branchjFParent);
+#endif
+#if PREFER_XOR
                     if ((gate_type != csat::GateType::XOR && gate_type != csat::GateType::NXOR) && (branch_gate_type == csat::GateType::XOR || branch_gate_type == csat::GateType::NXOR))
+#elif AVOID_XOR
+                    if ((gate_type == csat::GateType::XOR || gate_type == csat::GateType::NXOR) && (branch_gate_type != csat::GateType::XOR && branch_gate_type != csat::GateType::NXOR))
+#endif
+#if PREFER_XOR || AVOID_XOR
                     {
                         continue;
                     }
