@@ -421,8 +421,12 @@ Var Solver::pickBranchjFParent()
                 if (decision[jFParent])
                 {
 #if PREFER_XOR || AVOID_XOR
-                    auto gate_type = csat_instance->get()->getGateType(jFParent);
-                    auto branch_gate_type = csat_instance->get()->getGateType(branchjFParent);
+                    csat::GateType gate_type = csat_instance->get()->getGateType(jFParent);
+                    csat::GateType branch_gate_type;
+                    if (!first_watch)
+                    {
+                        branch_gate_type = csat_instance->get()->getGateType(branchjFParent);
+                    }
 
                     if (first_watch ||
                         (PREFER_XOR && branch_gate_type != csat::GateType::XOR && branch_gate_type != csat::GateType::NXOR && (gate_type == csat::GateType::XOR || gate_type == csat::GateType::NXOR)) ||
