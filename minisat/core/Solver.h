@@ -163,7 +163,7 @@ namespace Minisat
         void set_default_polarities();
 #endif
 
-#ifdef BACKPROP
+#if defined BACKPROP_ACTIVITY
         void count_distances();
 #endif
 
@@ -332,12 +332,12 @@ namespace Minisat
 
         // Circuit-SAT:
         //
-#if defined BACKPROP || defined JFRONTIERS_ACTIVITY
+#if defined BACKPROP || defined JFRONTIERS_ACTIVITY || defined BACKPROP_ACTIVITY
         std::set<Var> jFrontiers;
         Var pickBranchjFParent();
 #endif
 
-#ifdef BACKPROP
+#if defined BACKPROP || defined BACKPROP_ACTIVITY
         std::vector<int> distance_to_output;
 #endif
     };

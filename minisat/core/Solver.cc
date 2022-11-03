@@ -260,7 +260,7 @@ void Solver::cancelUntil(int level)
             Var x = var(trail[c]);
             assigns[x] = l_Undef;
 
-#if defined BACKPROP || defined JFRONTIERS_ACTIVITY
+#if defined BACKPROP || defined JFRONTIERS_ACTIVITY || defined BACKPROP_ACTIVITY
             jFrontiers.erase(x);
 
             for (Var user : csat_instance->get()->getGateUsers(x))
@@ -287,7 +287,6 @@ void Solver::cancelUntil(int level)
 // Major methods:
 
 #ifdef POLARITY_INIT_HEURISTIC
-
 void Solver::set_default_polarities()
 {
     std::map<int, std::pair<int, int>> polarities;
@@ -354,11 +353,9 @@ void Solver::set_default_polarities()
     }
 #endif
 }
-
 #endif
 
-#ifdef BACKPROP
-
+#if defined BACKPROP || defined BACKPROP_ACTIVITY
 void Solver::count_distances()
 {
     int number_of_gates = csat_instance->get()->getNumberOfGates();
@@ -399,7 +396,9 @@ void Solver::count_distances()
         }
     }
 }
+#endif
 
+#ifdef BACKPROP
 Var Solver::pickBranchjFParent()
 {
     vec<Var> toDelete;
@@ -434,9 +433,52 @@ Var Solver::pickBranchjFParent()
 
     return branchjFParent;
 }
+#elif defined BACKPROP_ACTIVITY
+Var Solver::pickBranchjFParent()
+{
+    vec<Var> toDelete;
+    Var branchjFParent = var_Undef;
+    int minDistance = 1000000000;
+    int maxActivity = -1;
+    for (Var jFrontier : jFrontiers)
+    {
+        bool real_jFrontier = false;
+        for (Var jFParent : csat_instance->get()->getGateOperands(jFrontier))
+        {
+            if (assigns[jFParent] == l_Undef)
+            {
+                real_jFrontier = true;
+                if (decision[jFParent])
+                {
+                    if (distance_to_output[jFParent] < minDistance)
+                    {
+                        branchjFParent = jFParent;
+                        minDistance = distance_to_output[jFParent];
+                        maxActivity = activity[jFParent];
+                    }
+                    else if (distance_to_output[jFParent] == minDistance && activity[jFParent] > maxActivity)
+                    {
+                        branchjFParent = jFParent;
+                        maxActivity = activity[jFParent];
+                    }
+                }
+            }
+        }
 
+        if (!real_jFrontier)
+        {
+            toDelete.push(jFrontier);
+        }
+    }
+
+    for (uint i = 0; i < toDelete.size(); ++i)
+    {
+        jFrontiers.erase(toDelete[i]);
+    }
+
+    return branchjFParent;
+}
 #elif defined JFRONTIERS_ACTIVITY
-
 Var Solver::pickBranchjFParent()
 {
     vec<Var> toDelete;
@@ -471,11 +513,8 @@ Var Solver::pickBranchjFParent()
 
     return branchjFParent;
 }
-
 #endif
-
 #if defined CSAT_HEURISTIC_START
-
 Lit Solver::pickBranchLit()
 {
     static bool reset = false;
@@ -498,13 +537,11 @@ Lit Solver::pickBranchLit()
 
             rebuildOrderHeap();
 #endif
-
 #if defined RESET_POLARITY && defined POLARITY_INIT_HEURISTIC
             for (int var = 0; var < n_vars; ++var)
             {
                 polarity[var] = polarity_copy[var];
             }
-
 #elif defined RESET_POLARITY
             for (int var = 0; var < n_vars; ++var)
             {
@@ -535,9 +572,7 @@ Lit Solver::pickBranchLit()
 
     return mkLit(next, polarity[next]);
 }
-
-#elif defined BACKPROP || defined JFRONTIERS_ACTIVITY
-
+#elif defined BACKPROP || defined JFRONTIERS_ACTIVITY || defined BACKPROP_ACTIVITY
 Lit Solver::pickBranchLit()
 {
     Var next = pickBranchjFParent();
@@ -549,9 +584,7 @@ Lit Solver::pickBranchLit()
 
     return mkLit(next, polarity[next]);
 }
-
 #else
-
 Lit Solver::pickBranchLit()
 {
     Var next = var_Undef;
@@ -596,7 +629,6 @@ Lit Solver::pickBranchLit()
 
     return mkLit(next, polarity[next]);
 }
-
 #endif
 
 /*_________________________________________________________________________________________________
@@ -874,7 +906,7 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
     vardata[var(p)] = mkVarData(from, decisionLevel());
     trail.push_(p);
 
-#if defined BACKPROP || defined JFRONTIERS_ACTIVITY
+#if defined BACKPROP || defined JFRONTIERS_ACTIVITY || defined BACKPROP_ACTIVITY
     jFrontiers.insert(var(p));
 #endif
 }
