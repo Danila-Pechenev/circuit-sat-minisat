@@ -407,6 +407,9 @@ Var Solver::pickBranchjFParent()
 #if COMPARE_BY_ACTIVITY
     int maxActivity = -1;
 #endif
+#if PREFER_XOR
+    bool first_watch = true;
+#endif
     for (Var jFrontier : jFrontiers)
     {
         bool real_jFrontier = false;
@@ -417,6 +420,25 @@ Var Solver::pickBranchjFParent()
                 real_jFrontier = true;
                 if (decision[jFParent])
                 {
+#if PREFER_XOR
+                    if (first_watch)
+                    {
+                        branchjFParent = jFParent;
+                        minDistance = distance_to_output[jFParent];
+#if COMPARE_BY_ACTIVITY
+                        maxActivity = activity[jFParent];
+#endif
+                        first_watch = false;
+                        continue;
+                    }
+
+                    auto gate_type = csat_instance->get()->getGateType(jFParent);
+                    auto branch_gate_type = csat_instance->get()->getGateType(branchjFParent);
+                    if ((gate_type != csat::GateType::XOR || gate_type != csat::GateType::NXOR) && (branch_gate_type == csat::GateType::XOR && branch_gate_type == csat::GateType::NXOR))
+                    {
+                        continue;
+                    }
+#endif
                     if (distance_to_output[jFParent] < minDistance)
                     {
                         branchjFParent = jFParent;
@@ -1342,6 +1364,10 @@ lbool Solver::solve_()
 
     // Search:
     int curr_restarts = 0;
+#ifdef CSAT_HEURISTIC_START
+    int default_restart_first = restart_first;
+    restart_first = RFIRST_CSAT;
+#endif
     while (status == l_Undef)
     {
         double rest_base = luby_restart ? luby(restart_inc, curr_restarts) : pow(restart_inc, curr_restarts);
@@ -1357,6 +1383,8 @@ lbool Solver::solve_()
         {
             curr_restarts = 0;
         }
+
+        restart_first = default_restart_first;
 #endif
     }
 
