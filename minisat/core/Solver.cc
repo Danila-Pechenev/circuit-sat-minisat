@@ -260,7 +260,7 @@ void Solver::cancelUntil(int level)
             Var x = var(trail[c]);
             assigns[x] = l_Undef;
 
-#if defined BACKPROP || defined JFRONTIERS_ACTIVITY || defined BACKPROP_ACTIVITY
+#if defined BACKPROP || defined JFRONTIERS_ACTIVITY
             jFrontiers.erase(x);
 
             for (Var user : csat_instance->get()->getGateUsers(x))
@@ -355,7 +355,7 @@ void Solver::set_default_polarities()
 }
 #endif
 
-#if defined BACKPROP || defined BACKPROP_ACTIVITY
+#if defined BACKPROP
 void Solver::count_distances()
 {
     int number_of_gates = csat_instance->get()->getNumberOfGates();
@@ -404,41 +404,6 @@ Var Solver::pickBranchjFParent()
     vec<Var> toDelete;
     Var branchjFParent = var_Undef;
     int minDistance = 1000000000;
-    for (Var jFrontier : jFrontiers)
-    {
-        bool real_jFrontier = false;
-        for (Var jFParent : csat_instance->get()->getGateOperands(jFrontier))
-        {
-            if (assigns[jFParent] == l_Undef)
-            {
-                real_jFrontier = true;
-                if (distance_to_output[jFParent] < minDistance && decision[jFParent])
-                {
-                    branchjFParent = jFParent;
-                    minDistance = distance_to_output[jFParent];
-                }
-            }
-        }
-
-        if (!real_jFrontier)
-        {
-            toDelete.push(jFrontier);
-        }
-    }
-
-    for (uint i = 0; i < toDelete.size(); ++i)
-    {
-        jFrontiers.erase(toDelete[i]);
-    }
-
-    return branchjFParent;
-}
-#elif defined BACKPROP_ACTIVITY
-Var Solver::pickBranchjFParent()
-{
-    vec<Var> toDelete;
-    Var branchjFParent = var_Undef;
-    int minDistance = 1000000000;
     int maxActivity = -1;
     for (Var jFrontier : jFrontiers)
     {
@@ -456,7 +421,7 @@ Var Solver::pickBranchjFParent()
                         minDistance = distance_to_output[jFParent];
                         maxActivity = activity[jFParent];
                     }
-                    else if (distance_to_output[jFParent] == minDistance && activity[jFParent] > maxActivity)
+                    else if (COMPARE_BY_ACTIVITY && distance_to_output[jFParent] == minDistance && activity[jFParent] > maxActivity)
                     {
                         branchjFParent = jFParent;
                         maxActivity = activity[jFParent];
@@ -572,7 +537,7 @@ Lit Solver::pickBranchLit()
 
     return mkLit(next, polarity[next]);
 }
-#elif defined BACKPROP || defined JFRONTIERS_ACTIVITY || defined BACKPROP_ACTIVITY
+#elif defined BACKPROP || defined JFRONTIERS_ACTIVITY
 Lit Solver::pickBranchLit()
 {
     Var next = pickBranchjFParent();
@@ -906,7 +871,7 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
     vardata[var(p)] = mkVarData(from, decisionLevel());
     trail.push_(p);
 
-#if defined BACKPROP || defined JFRONTIERS_ACTIVITY || defined BACKPROP_ACTIVITY
+#if defined BACKPROP || defined JFRONTIERS_ACTIVITY
     jFrontiers.insert(var(p));
 #endif
 }

@@ -122,7 +122,7 @@ int main(int argc, char **argv)
         auto csat_instance = parser.instantiate();
         S.csat_instance = &csat_instance;
 
-#if defined BACKPROP || defined BACKPROP_ACTIVITY
+#if defined BACKPROP
         S.count_distances();
 #endif
 
