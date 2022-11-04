@@ -407,7 +407,7 @@ Var Solver::pickBranchjFParent()
 #if COMPARE_BY_ACTIVITY
     int maxActivity = -1;
 #endif
-#if PREFER_XOR || AVOID_XOR
+#if (PREFER_XOR && !AVOID_XOR) || (AVOID_XOR && !PREFER_XOR)
     bool first_watch = true;
 #endif
     for (Var jFrontier : jFrontiers)
@@ -420,7 +420,7 @@ Var Solver::pickBranchjFParent()
                 real_jFrontier = true;
                 if (decision[jFParent])
                 {
-#if PREFER_XOR || AVOID_XOR
+#if (PREFER_XOR && !AVOID_XOR) || (AVOID_XOR && !PREFER_XOR)
                     csat::GateType gate_type = csat_instance->get()->getGateType(jFParent);
                     csat::GateType branch_gate_type;
                     if (!first_watch)
@@ -446,7 +446,7 @@ Var Solver::pickBranchjFParent()
 #elif AVOID_XOR
                     if ((gate_type == csat::GateType::XOR || gate_type == csat::GateType::NXOR) && (branch_gate_type != csat::GateType::XOR && branch_gate_type != csat::GateType::NXOR))
 #endif
-#if PREFER_XOR || AVOID_XOR
+#if (PREFER_XOR && !AVOID_XOR) || (AVOID_XOR && !PREFER_XOR)
                     {
                         continue;
                     }
