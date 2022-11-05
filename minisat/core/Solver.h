@@ -29,7 +29,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "minisat/core/SolverTypes.h"
 #include <minisat/core/Config.h>
 
-#include "/home/danila/CircuitSAT/circuitsat/core/source/structures/parser.hpp"
+#include "core/source/structures/parser.hpp"
 
 namespace Minisat
 {
@@ -158,14 +158,6 @@ namespace Minisat
         //
         std::unique_ptr<csat::DAG> *csat_instance;
         bool verifySolution();
-
-#ifdef POLARITY_INIT_HEURISTIC
-        void set_default_polarities();
-#endif
-
-#if defined BACKPROP
-        void count_distances();
-#endif
 
     protected:
         // Helper structures:
@@ -337,8 +329,13 @@ namespace Minisat
         Var pickBranchjFParent();
 #endif
 
-#if defined BACKPROP
+#ifdef POLARITY_INIT_HEURISTIC
+        void setDefaultPolarities();
+#endif
+
+#ifdef BACKPROP
         std::vector<int> distance_to_output;
+        void countDistances();
 #endif
     };
 

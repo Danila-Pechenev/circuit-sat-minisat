@@ -30,9 +30,9 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "minisat/core/Solver.h"
 #include <minisat/core/Config.h>
 
-#include "/home/danila/CircuitSAT/circuitsat/core/source/structures/parser.hpp"
-#include "/home/danila/CircuitSAT/circuitsat/baseline/cpp/src/parser/parser.hpp"
-#include "/home/danila/CircuitSAT/circuitsat/baseline/cpp/src/utils/utils.hpp"
+#include "core/source/structures/parser.hpp"
+#include "baseline/cpp/src/parser/parser.hpp"
+#include "baseline/cpp/src/utils/utils.hpp"
 
 using namespace Minisat;
 
@@ -122,10 +122,6 @@ int main(int argc, char **argv)
         auto csat_instance = parser.instantiate();
         S.csat_instance = &csat_instance;
 
-#if defined BACKPROP
-        S.count_distances();
-#endif
-
         BenchToCNF bench_to_cnf_parser;
         bench_to_cnf_parser.convert_to_cnf(file);
         file.close();
@@ -193,9 +189,6 @@ int main(int argc, char **argv)
             exit(20);
         }
 
-#ifdef POLARITY_INIT_HEURISTIC
-        S.set_default_polarities();
-#endif
         vec<Lit> dummy;
         lbool ret = S.solveLimited(dummy);
         if (S.verbosity > 0)

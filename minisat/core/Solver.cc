@@ -273,7 +273,10 @@ void Solver::cancelUntil(int level)
 #endif
 
             if (phase_saving > 1 || (phase_saving == 1 && c > trail_lim.last()))
+            {
                 polarity[x] = sign(trail[c]);
+            }
+
             insertVarOrder(x);
         }
 
@@ -287,7 +290,7 @@ void Solver::cancelUntil(int level)
 // Major methods:
 
 #ifdef POLARITY_INIT_HEURISTIC
-void Solver::set_default_polarities()
+void Solver::setDefaultPolarities()
 {
     std::map<int, std::pair<int, int>> polarities;
     for (int i = 0; i < clauses.size(); ++i)
@@ -355,8 +358,8 @@ void Solver::set_default_polarities()
 }
 #endif
 
-#if defined BACKPROP
-void Solver::count_distances()
+#ifdef BACKPROP
+void Solver::countDistances()
 {
     int number_of_gates = csat_instance->get()->getNumberOfGates();
     distance_to_output.reserve(number_of_gates);
@@ -401,11 +404,11 @@ void Solver::count_distances()
 #ifdef BACKPROP
 Var Solver::pickBranchjFParent()
 {
-    vec<Var> toDelete;
-    Var branchjFParent = var_Undef;
-    int minDistance = 1000000000;
+    vec<Var> to_delete;
+    Var branch_jF_parent = var_Undef;
+    int min_distance = 1000000000;
 #if COMPARE_BY_ACTIVITY
-    int maxActivity = -1;
+    int max_activity = -1;
 #endif
 #if (PREFER_XOR && !AVOID_XOR) || (AVOID_XOR && !PREFER_XOR)
     bool first_watch = true;
@@ -425,17 +428,17 @@ Var Solver::pickBranchjFParent()
                     csat::GateType branch_gate_type;
                     if (!first_watch)
                     {
-                        branch_gate_type = csat_instance->get()->getGateType(branchjFParent);
+                        branch_gate_type = csat_instance->get()->getGateType(branch_jF_parent);
                     }
 
                     if (first_watch ||
                         (PREFER_XOR && branch_gate_type != csat::GateType::XOR && branch_gate_type != csat::GateType::NXOR && (gate_type == csat::GateType::XOR || gate_type == csat::GateType::NXOR)) ||
                         (AVOID_XOR && (branch_gate_type == csat::GateType::XOR || branch_gate_type == csat::GateType::NXOR) && gate_type != csat::GateType::XOR && gate_type != csat::GateType::NXOR))
                     {
-                        branchjFParent = jFParent;
-                        minDistance = distance_to_output[jFParent];
+                        branch_jF_parent = jFParent;
+                        min_distance = distance_to_output[jFParent];
 #if COMPARE_BY_ACTIVITY
-                        maxActivity = activity[jFParent];
+                        max_activity = activity[jFParent];
 #endif
                         first_watch = false;
                         continue;
@@ -451,19 +454,19 @@ Var Solver::pickBranchjFParent()
                         continue;
                     }
 #endif
-                    if (distance_to_output[jFParent] < minDistance)
+                    if (distance_to_output[jFParent] < min_distance)
                     {
-                        branchjFParent = jFParent;
-                        minDistance = distance_to_output[jFParent];
+                        branch_jF_parent = jFParent;
+                        min_distance = distance_to_output[jFParent];
 #if COMPARE_BY_ACTIVITY
-                        maxActivity = activity[jFParent];
+                        max_activity = activity[jFParent];
 #endif
                     }
 #if COMPARE_BY_ACTIVITY
-                    else if (distance_to_output[jFParent] == minDistance && activity[jFParent] > maxActivity)
+                    else if (distance_to_output[jFParent] == min_distance && activity[jFParent] > max_activity)
                     {
-                        branchjFParent = jFParent;
-                        maxActivity = activity[jFParent];
+                        branch_jF_parent = jFParent;
+                        max_activity = activity[jFParent];
                     }
 #endif
                 }
@@ -472,23 +475,23 @@ Var Solver::pickBranchjFParent()
 
         if (!real_jFrontier)
         {
-            toDelete.push(jFrontier);
+            to_delete.push(jFrontier);
         }
     }
 
-    for (uint i = 0; i < toDelete.size(); ++i)
+    for (uint i = 0; i < to_delete.size(); ++i)
     {
-        jFrontiers.erase(toDelete[i]);
+        jFrontiers.erase(to_delete[i]);
     }
 
-    return branchjFParent;
+    return branch_jF_parent;
 }
 #elif defined JFRONTIERS_ACTIVITY
 Var Solver::pickBranchjFParent()
 {
-    vec<Var> toDelete;
-    Var branchjFParent = var_Undef;
-    double maxActivity = -1;
+    vec<Var> to_delete;
+    Var branch_jF_parent = var_Undef;
+    double max_activity = -1;
     for (Var jFrontier : jFrontiers)
     {
         bool real_jFrontier = false;
@@ -497,29 +500,29 @@ Var Solver::pickBranchjFParent()
             if (assigns[jFParent] == l_Undef)
             {
                 real_jFrontier = true;
-                if (activity[jFParent] > maxActivity && decision[jFParent])
+                if (activity[jFParent] > max_activity && decision[jFParent])
                 {
-                    branchjFParent = jFParent;
-                    maxActivity = activity[jFParent];
+                    branch_jF_parent = jFParent;
+                    max_activity = activity[jFParent];
                 }
             }
         }
 
         if (!real_jFrontier)
         {
-            toDelete.push(jFrontier);
+            to_delete.push(jFrontier);
         }
     }
 
-    for (uint i = 0; i < toDelete.size(); ++i)
+    for (uint i = 0; i < to_delete.size(); ++i)
     {
-        jFrontiers.erase(toDelete[i]);
+        jFrontiers.erase(to_delete[i]);
     }
 
-    return branchjFParent;
+    return branch_jF_parent;
 }
 #endif
-#if defined CSAT_HEURISTIC_START
+#ifdef CSAT_HEURISTIC_START
 Lit Solver::pickBranchLit()
 {
     static bool reset = false;
@@ -1347,6 +1350,13 @@ static double luby(double y, int x)
 // NOTE: assumptions passed in member-variable 'assumptions'.
 lbool Solver::solve_()
 {
+#ifdef BACKPROP
+    countDistances();
+#endif
+
+#ifdef POLARITY_INIT_HEURISTIC
+    setDefaultPolarities();
+#endif
     model.clear();
     conflict.clear();
     if (!ok)
