@@ -112,7 +112,7 @@ Var Solver::newVar(lbool upol, bool dvar)
     seen.insert(v, 0);
     polarity.insert(v, DEFAULT_POLARITY_VALUE);
 
-#if defined CSAT_HEURISTIC_START && defined RESET_POLARITY && defined POLARITY_INIT_HEURISTIC
+#if defined CSAT_HEURISTIC_START && RESET_POLARITY && defined POLARITY_INIT_HEURISTIC
     polarity_copy.insert(v, DEFAULT_POLARITY_VALUE);
 #endif
 
@@ -346,7 +346,7 @@ void Solver::set_default_polarities()
         }
     }
 
-#if defined CSAT_HEURISTIC_START && defined RESET_POLARITY
+#if defined CSAT_HEURISTIC_START && RESET_POLARITY
     for (int var = 0; var < n_vars; ++var)
     {
         polarity_copy[var] = polarity[var];
@@ -534,7 +534,7 @@ Lit Solver::pickBranchLit()
         if (!reset)
         {
             int n_vars = nVars();
-#ifdef RESET_ACTIVITY
+#if RESET_ACTIVITY
             for (int var = 0; var < n_vars; ++var)
             {
                 activity[var] = rnd_init_act ? drand(random_seed) * 0.00001 : 0;
@@ -542,12 +542,12 @@ Lit Solver::pickBranchLit()
 
             rebuildOrderHeap();
 #endif
-#if defined RESET_POLARITY && defined POLARITY_INIT_HEURISTIC
+#if RESET_POLARITY && defined POLARITY_INIT_HEURISTIC
             for (int var = 0; var < n_vars; ++var)
             {
                 polarity[var] = polarity_copy[var];
             }
-#elif defined RESET_POLARITY
+#elif RESET_POLARITY
             for (int var = 0; var < n_vars; ++var)
             {
                 polarity[var] = DEFAULT_POLARITY_VALUE;
@@ -1390,7 +1390,7 @@ lbool Solver::solve_()
         }
 
         curr_restarts++;
-#if defined CSAT_HEURISTIC_START && defined RESET_RESTARTS
+#if defined CSAT_HEURISTIC_START && RESET_RESTARTS
         if (starts == DEFAULT_HEURISTIC_AFTER_N_RESTARTS)
         {
             curr_restarts = 0;

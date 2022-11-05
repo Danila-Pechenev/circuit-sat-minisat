@@ -223,7 +223,7 @@ namespace Minisat
         VMap<lbool> assigns;   // The current assignments.
         VMap<char> polarity;   // The preferred polarity of each variable.
 
-#if defined CSAT_HEURISTIC_START && defined RESET_POLARITY && defined POLARITY_INIT_HEURISTIC
+#if defined CSAT_HEURISTIC_START && RESET_POLARITY && defined POLARITY_INIT_HEURISTIC
         VMap<char> polarity_copy;
 #endif
 

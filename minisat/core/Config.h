@@ -17,8 +17,9 @@
 //
 // Define to use back propagation
 #define BACKPROP
+// Options:
 #define COMPARE_BY_ACTIVITY false // Define true to use activity-based back propagation
-#define PREFER_XOR true           // Define true to use prefer-XOR back propagation
+#define PREFER_XOR false          // Define true to use prefer-XOR back propagation
 #define AVOID_XOR false           // Define true to use avoid-XOR back propagation
 //
 // Define to use jFrontiers-activity heuristic
@@ -26,11 +27,12 @@
 //
 // Define to start solving with Circuit-SAT heuristic
 #define CSAT_HEURISTIC_START
-#define DEFAULT_HEURISTIC_AFTER_N_RESTARTS 1 // Define to start solving with default Minisat heuristic after N restarts
+// Options:
+#define DEFAULT_HEURISTIC_AFTER_N_RESTARTS 1 // Start solving with default Minisat heuristic after N restarts
 #define RFIRST_CSAT 100                      // rfirst for Circuit-SAT heuristic
-#define RESET_ACTIVITY                       // Define to reset activities after solving with Circuit-SAT heuristic or not
-#define RESET_RESTARTS                       // Define to reset restarts after solving with Circuit-SAT heuristic or not
-// #define RESET_POLARITY                       // Define to reset polarities after solving with Circuit-SAT heuristic or not
+#define RESET_ACTIVITY true                  // Define true to reset activities after solving with Circuit-SAT heuristic or not
+#define RESET_RESTARTS true                  // Define true to reset restarts after solving with Circuit-SAT heuristic or not
+#define RESET_POLARITY false                 // Define true to reset polarities after solving with Circuit-SAT heuristic or not
 //
 // >>> Polarity heuristics <<<<<<<<<<<<<<<<<<<<
 //
