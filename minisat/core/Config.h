@@ -36,7 +36,10 @@
 //
 // >>> Polarity heuristics <<<<<<<<<<<<<<<<<<<<
 //
-// Define to use polarity initialization heuristic
-#define POLARITY_INIT_HEURISTIC
+// Define to use max-probability polarity initialization heuristic
+// #define POLARITY_INIT_MAXPROB
+//
+// Define to use max-propagation polarity initialization heuristic
+#define POLARITY_INIT_MAXBACKPROP
 //
 // --------------------------------------------

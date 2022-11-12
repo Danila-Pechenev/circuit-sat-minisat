@@ -215,7 +215,7 @@ namespace Minisat
         VMap<lbool> assigns;   // The current assignments.
         VMap<char> polarity;   // The preferred polarity of each variable.
 
-#if defined CSAT_HEURISTIC_START && RESET_POLARITY && defined POLARITY_INIT_HEURISTIC
+#if defined CSAT_HEURISTIC_START && RESET_POLARITY && (defined POLARITY_INIT_MAXPROB || defined POLARITY_INIT_MAXBACKPROP)
         VMap<char> polarity_copy;
 #endif
 
@@ -329,7 +329,7 @@ namespace Minisat
         Var pickBranchjFParent();
 #endif
 
-#ifdef POLARITY_INIT_HEURISTIC
+#if defined POLARITY_INIT_MAXPROB || defined POLARITY_INIT_MAXBACKPROP
         void setDefaultPolarities();
 #endif
 

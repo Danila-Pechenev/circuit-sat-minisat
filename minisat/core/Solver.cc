@@ -289,7 +289,7 @@ void Solver::cancelUntil(int level)
 //=================================================================================================
 // Major methods:
 
-#ifdef POLARITY_INIT_HEURISTIC
+#if defined POLARITY_INIT_MAXPROB || defined POLARITY_INIT_MAXBACKPROP
 void Solver::setDefaultPolarities()
 {
     std::map<int, std::pair<int, int>> polarities;
@@ -320,7 +320,11 @@ void Solver::setDefaultPolarities()
     for (int var = 0; var < n_vars; ++var)
     {
         auto operation = csat_instance->get()->getGateType(var);
+#ifdef POLARITY_INIT_MAXPROB
         if (operation == csat::GateType::AND || operation == csat::GateType::NOR)
+#elif defined POLARITY_INIT_MAXBACKPROP
+        if (operation == csat::GateType::OR || operation == csat::GateType::NAND)
+#endif
         {
             polarity[var] = true;
         }
@@ -328,7 +332,11 @@ void Solver::setDefaultPolarities()
         {
             auto operand = csat_instance->get()->getGateOperands(var)[0];
             auto operand_operation = csat_instance->get()->getGateType(operand);
+#ifdef POLARITY_INIT_MAXPROB
             if ((operand_operation != csat::GateType::INPUT && operand_operation != csat::GateType::AND && operand_operation != csat::GateType::NOR) ||
+#elif defined POLARITY_INIT_MAXBACKPROP
+            if ((operand_operation != csat::GateType::INPUT && operand_operation != csat::GateType::OR && operand_operation != csat::GateType::NAND) ||
+#endif
                 (operand_operation == csat::GateType::INPUT && polarities[operand].first < polarities[operand].second))
             {
                 polarity[var] = true;
@@ -545,7 +553,7 @@ Lit Solver::pickBranchLit()
 
             rebuildOrderHeap();
 #endif
-#if RESET_POLARITY && defined POLARITY_INIT_HEURISTIC
+#if RESET_POLARITY && (defined POLARITY_INIT_MAXPROB || defined POLARITY_INIT_MAXBACKPROP)
             for (int var = 0; var < n_vars; ++var)
             {
                 polarity[var] = polarity_copy[var];
@@ -1354,7 +1362,7 @@ lbool Solver::solve_()
     countDistances();
 #endif
 
-#ifdef POLARITY_INIT_HEURISTIC
+#if defined POLARITY_INIT_MAXPROB || defined POLARITY_INIT_MAXBACKPROP
     setDefaultPolarities();
 #endif
     model.clear();
