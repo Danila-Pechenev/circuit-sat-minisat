@@ -156,7 +156,7 @@ namespace Minisat
 
         // Circuit-SAT:
         //
-        std::unique_ptr<csat::DAG> *csat_instance;
+        std::shared_ptr<csat::DAG> csat_instance;
         bool verifySolution();
 
     protected:

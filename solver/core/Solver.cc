@@ -286,7 +286,7 @@ void Solver::cancelUntil(int level)
 #if defined BACKPROP || defined JFRONTIERS_ACTIVITY
             jFrontiers.erase(x);
 
-            for (Var user : csat_instance->get()->getGateUsers(x))
+            for (Var user : csat_instance.get()->getGateUsers(x))
             {
                 if (assigns[user] != l_Undef)
                 {
@@ -342,7 +342,7 @@ void Solver::setDefaultPolarities()
     int n_vars = nVars();
     for (int var = 0; var < n_vars; ++var)
     {
-        auto operation = csat_instance->get()->getGateType(var);
+        auto operation = csat_instance.get()->getGateType(var);
 #ifdef POLARITY_INIT_MAXPROB
         if (operation == csat::GateType::AND || operation == csat::GateType::NOR)
 #elif defined POLARITY_INIT_MAXBACKPROP
@@ -353,8 +353,8 @@ void Solver::setDefaultPolarities()
         }
         else if (operation == csat::GateType::NOT)
         {
-            auto operand = csat_instance->get()->getGateOperands(var)[0];
-            auto operand_operation = csat_instance->get()->getGateType(operand);
+            auto operand = csat_instance.get()->getGateOperands(var)[0];
+            auto operand_operation = csat_instance.get()->getGateType(operand);
 #ifdef POLARITY_INIT_MAXPROB
             if ((operand_operation != csat::GateType::INPUT && operand_operation != csat::GateType::AND && operand_operation != csat::GateType::NOR) ||
 #elif defined POLARITY_INIT_MAXBACKPROP
@@ -392,7 +392,7 @@ void Solver::setDefaultPolarities()
 #ifdef BACKPROP
 void Solver::countDistances()
 {
-    int number_of_gates = csat_instance->get()->getNumberOfGates();
+    int number_of_gates = csat_instance.get()->getNumberOfGates();
     distance_to_output.reserve(number_of_gates);
     for (int i = 0; i < number_of_gates; ++i)
     {
@@ -401,10 +401,10 @@ void Solver::countDistances()
 
     std::queue<Var> q;
 
-    for (Var output : csat_instance->get()->getOutputGates())
+    for (Var output : csat_instance.get()->getOutputGates())
     {
         distance_to_output[output] = 0;
-        for (Var parent : csat_instance->get()->getGateOperands(output))
+        for (Var parent : csat_instance.get()->getGateOperands(output))
         {
             if (distance_to_output[parent] == 0)
             {
@@ -420,7 +420,7 @@ void Solver::countDistances()
         q.pop();
 
         int distance = distance_to_output[gate] + 1;
-        for (Var parent : csat_instance->get()->getGateOperands(gate))
+        for (Var parent : csat_instance.get()->getGateOperands(gate))
         {
             if (distance_to_output[parent] == 0)
             {
@@ -449,7 +449,7 @@ Var Solver::pickBranchjFParent()
     for (Var jFrontier : jFrontiers)
     {
         bool real_jFrontier = false;
-        for (Var jFParent : csat_instance->get()->getGateOperands(jFrontier))
+        for (Var jFParent : csat_instance.get()->getGateOperands(jFrontier))
         {
             if (assigns[jFParent] == l_Undef)
             {
@@ -457,11 +457,11 @@ Var Solver::pickBranchjFParent()
                 if (decision[jFParent])
                 {
 #if (PREFER_XOR && !AVOID_XOR) || (AVOID_XOR && !PREFER_XOR)
-                    csat::GateType gate_type = csat_instance->get()->getGateType(jFParent);
+                    csat::GateType gate_type = csat_instance.get()->getGateType(jFParent);
                     csat::GateType branch_gate_type;
                     if (!first_watch)
                     {
-                        branch_gate_type = csat_instance->get()->getGateType(branch_jF_parent);
+                        branch_gate_type = csat_instance.get()->getGateType(branch_jF_parent);
                     }
 
                     if (first_watch ||
@@ -528,7 +528,7 @@ Var Solver::pickBranchjFParent()
     for (Var jFrontier : jFrontiers)
     {
         bool real_jFrontier = false;
-        for (Var jFParent : csat_instance->get()->getGateOperands(jFrontier))
+        for (Var jFParent : csat_instance.get()->getGateOperands(jFrontier))
         {
             if (assigns[jFParent] == l_Undef)
             {
@@ -1628,16 +1628,16 @@ void Solver::printStats() const
 
 bool Solver::verifySolution()
 {
-    int n_inputs = csat_instance->get()->getInputGates().size();
-    int n_gates = csat_instance->get()->getNumberOfGates();
+    int n_inputs = csat_instance.get()->getInputGates().size();
+    int n_gates = csat_instance.get()->getNumberOfGates();
     for (int gate = n_inputs; gate < n_gates; ++gate)
     {
-        auto operation = csat_instance->get()->getGateType(gate);
+        auto operation = csat_instance.get()->getGateType(gate);
         bool result;
         if (operation == csat::GateType::AND)
         {
             result = true;
-            for (auto const &operand : csat_instance->get()->getGateOperands(gate))
+            for (auto const &operand : csat_instance.get()->getGateOperands(gate))
             {
                 if (model[operand] != l_True)
                 {
@@ -1648,7 +1648,7 @@ bool Solver::verifySolution()
         else if (operation == csat::GateType::NAND)
         {
             result = false;
-            for (auto const &operand : csat_instance->get()->getGateOperands(gate))
+            for (auto const &operand : csat_instance.get()->getGateOperands(gate))
             {
                 if (model[operand] != l_True)
                 {
@@ -1659,7 +1659,7 @@ bool Solver::verifySolution()
         else if (operation == csat::GateType::OR)
         {
             result = false;
-            for (auto const &operand : csat_instance->get()->getGateOperands(gate))
+            for (auto const &operand : csat_instance.get()->getGateOperands(gate))
             {
                 if (model[operand] == l_True)
                 {
@@ -1670,7 +1670,7 @@ bool Solver::verifySolution()
         else if (operation == csat::GateType::NOR)
         {
             result = true;
-            for (auto const &operand : csat_instance->get()->getGateOperands(gate))
+            for (auto const &operand : csat_instance.get()->getGateOperands(gate))
             {
                 if (model[operand] == l_True)
                 {
@@ -1681,7 +1681,7 @@ bool Solver::verifySolution()
         else if (operation == csat::GateType::XOR)
         {
             int count_true = 0;
-            for (auto const &operand : csat_instance->get()->getGateOperands(gate))
+            for (auto const &operand : csat_instance.get()->getGateOperands(gate))
             {
                 if (model[operand] == l_True)
                 {
@@ -1694,7 +1694,7 @@ bool Solver::verifySolution()
         else if (operation == csat::GateType::NXOR)
         {
             int count_true = 0;
-            for (auto const &operand : csat_instance->get()->getGateOperands(gate))
+            for (auto const &operand : csat_instance.get()->getGateOperands(gate))
             {
                 if (model[operand] == l_True)
                 {
@@ -1706,7 +1706,7 @@ bool Solver::verifySolution()
         }
         else
         {
-            result = (model[csat_instance->get()->getGateOperands(gate)[0]] != l_True);
+            result = (model[csat_instance.get()->getGateOperands(gate)[0]] != l_True);
         }
 
         if ((model[gate] == l_True) != result)
@@ -1715,7 +1715,7 @@ bool Solver::verifySolution()
         }
     }
 
-    for (auto output : csat_instance->get()->getOutputGates())
+    for (auto output : csat_instance.get()->getOutputGates())
     {
         if (model[output] != l_True)
         {

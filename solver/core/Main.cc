@@ -119,8 +119,8 @@ int main(int argc, char **argv)
         file.clear();
         file.seekg(0);
 
-        auto csat_instance = parser.instantiate();
-        S.csat_instance = &csat_instance;
+        std::shared_ptr<csat::DAG> csat_instance = parser.instantiate();
+        S.csat_instance = csat_instance;
 
         auto bench_to_cnf_parser = bench_to_cnf::BenchToCNFParser();
         bench_to_cnf_parser.parseStream(file);
