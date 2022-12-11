@@ -20,6 +20,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include <math.h>
 #include <queue>
+#include <unordered_set>
 
 #include "solver/mtl/Alg.h"
 #include "solver/mtl/Sort.h"
@@ -395,10 +396,12 @@ void Solver::countDistances()
 
     std::queue<Var> q;
 
+    std::unordered_set<size_t> outputs;
     for (size_t output : csat_instance.get()->getOutputGates())
     {
         distance_to_output[output] = 0;
         q.push(output);
+        outputs.insert(output);
     }
 
     while (!q.empty())
@@ -409,7 +412,7 @@ void Solver::countDistances()
         int distance = distance_to_output[gate] + 1;
         for (size_t parent : csat_instance.get()->getGateOperands(gate))
         {
-            if (distance_to_output[parent] == 0)
+            if (distance_to_output[parent] == 0 && outputs.find(parent) == outputs.end())
             {
                 distance_to_output[parent] = distance;
                 q.push(parent);
