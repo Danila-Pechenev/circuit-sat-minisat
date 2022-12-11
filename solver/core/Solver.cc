@@ -395,17 +395,10 @@ void Solver::countDistances()
 
     std::queue<Var> q;
 
-    for (Var output : csat_instance.get()->getOutputGates())
+    for (size_t output : csat_instance.get()->getOutputGates())
     {
         distance_to_output[output] = 0;
-        for (Var parent : csat_instance.get()->getGateOperands(output))
-        {
-            if (distance_to_output[parent] == 0)
-            {
-                distance_to_output[parent] = 1;
-                q.push(parent);
-            }
-        }
+        q.push(output);
     }
 
     while (!q.empty())
@@ -414,7 +407,7 @@ void Solver::countDistances()
         q.pop();
 
         int distance = distance_to_output[gate] + 1;
-        for (Var parent : csat_instance.get()->getGateOperands(gate))
+        for (size_t parent : csat_instance.get()->getGateOperands(gate))
         {
             if (distance_to_output[parent] == 0)
             {
@@ -443,7 +436,7 @@ Var Solver::pickBranchjFParent()
     for (Var jFrontier : jFrontiers)
     {
         bool real_jFrontier = false;
-        for (Var jFParent : csat_instance.get()->getGateOperands(jFrontier))
+        for (size_t jFParent : csat_instance.get()->getGateOperands(jFrontier))
         {
             if (assigns[jFParent] == l_Undef)
             {
@@ -522,7 +515,7 @@ Var Solver::pickBranchjFParent()
     for (Var jFrontier : jFrontiers)
     {
         bool real_jFrontier = false;
-        for (Var jFParent : csat_instance.get()->getGateOperands(jFrontier))
+        for (size_t jFParent : csat_instance.get()->getGateOperands(jFrontier))
         {
             if (assigns[jFParent] == l_Undef)
             {
@@ -1622,9 +1615,9 @@ void Solver::printStats() const
 
 bool Solver::verifySolution()
 {
-    int n_inputs = csat_instance.get()->getInputGates().size();
-    int n_gates = csat_instance.get()->getNumberOfGates();
-    for (int gate = n_inputs; gate < n_gates; ++gate)
+    size_t n_inputs = csat_instance.get()->getInputGates().size();
+    size_t n_gates = csat_instance.get()->getNumberOfGates();
+    for (size_t gate = n_inputs; gate < n_gates; ++gate)
     {
         auto operation = csat_instance.get()->getGateType(gate);
         bool result;
