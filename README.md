@@ -19,7 +19,6 @@ Minisat is a very well-known SAT-solver. It is small, complete and efficient. Th
 (circuit-sat-minisat/build)$ cmake ..
 (circuit-sat-minisat/build)$ cmake --build .
 ```
-
 ### Using
 ```
 (circuit-sat-minisat/build)$ ./csat_solver <.bench instance path>
