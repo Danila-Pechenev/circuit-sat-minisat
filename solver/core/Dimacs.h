@@ -23,8 +23,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include <stdio.h>
 
-#include "minisat/utils/ParseUtils.h"
-#include "minisat/core/SolverTypes.h"
+#include "solver/utils/ParseUtils.h"
+#include "solver/core/SolverTypes.h"
 
 namespace Minisat
 {
@@ -77,7 +77,7 @@ namespace Minisat
                     clauses = parseInt(in);
                     // SATRACE'06 hack
                     // if (clauses > 4000000)
-                    //     S.eliminate(true);
+                    // S.eliminate(true);
                 }
                 else
                 {

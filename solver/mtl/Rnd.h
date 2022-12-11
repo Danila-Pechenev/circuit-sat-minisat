@@ -19,7 +19,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef Minisat_Rnd_h
 #define Minisat_Rnd_h
 
-#include "minisat/mtl/Vec.h"
+#include "solver/mtl/Vec.h"
 
 namespace Minisat {
 

@@ -23,16 +23,15 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <sstream>
 #include <fstream>
 
-#include "minisat/utils/System.h"
-#include "minisat/utils/ParseUtils.h"
-#include "minisat/utils/Options.h"
-#include "minisat/core/Dimacs.h"
-#include "minisat/core/Solver.h"
-#include <minisat/core/Config.h>
+#include "solver/utils/System.h"
+#include "solver/utils/ParseUtils.h"
+#include "solver/utils/Options.h"
+#include "solver/core/Dimacs.h"
+#include "solver/core/Solver.h"
+#include "solver/core/Config.h"
 
 #include "core/source/structures/parser.hpp"
-#include "baseline/cpp/src/parser/parser.hpp"
-#include "baseline/cpp/src/utils/utils.hpp"
+#include "core/source/bench_to_cnf/bench_to_cnf.hpp"
 
 using namespace Minisat;
 
@@ -122,15 +121,12 @@ int main(int argc, char **argv)
         auto csat_instance = parser.instantiate();
         S.csat_instance = &csat_instance;
 
-        BenchToCNF bench_to_cnf_parser;
-        bench_to_cnf_parser.convert_to_cnf(file);
+        auto bench_to_cnf_parser = bench_to_cnf::BenchToCNFParser();
+        bench_to_cnf_parser.parseStream(file);
         file.close();
 
         std::ofstream cnf_file("cnf_file.dimacs");
-        cnf_file << cnf_to_str(
-            bench_to_cnf_parser.cnf,
-            bench_to_cnf_parser.gate_number,
-            bench_to_cnf_parser.clauses_number);
+        bench_to_cnf_parser.writeCNFToStream(cnf_file);
         cnf_file.close();
         double transfer_to_cnf_time = cpuTime() - initial_time;
 

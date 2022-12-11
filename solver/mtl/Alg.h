@@ -21,7 +21,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef Minisat_Alg_h
 #define Minisat_Alg_h
 
-#include "minisat/mtl/Vec.h"
+#include "solver/mtl/Vec.h"
 
 namespace Minisat {
 

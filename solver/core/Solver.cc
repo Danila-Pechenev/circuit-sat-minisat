@@ -21,11 +21,11 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <math.h>
 #include <queue>
 
-#include "minisat/mtl/Alg.h"
-#include "minisat/mtl/Sort.h"
-#include "minisat/utils/System.h"
-#include "minisat/core/Solver.h"
-#include <minisat/core/Config.h>
+#include "solver/mtl/Alg.h"
+#include "solver/mtl/Sort.h"
+#include "solver/utils/System.h"
+#include "solver/core/Solver.h"
+#include "solver/core/Config.h"
 
 using namespace Minisat;
 
@@ -51,33 +51,56 @@ static IntOption opt_min_learnts_lim(_cat, "min-learnts", "Minimum learnt clause
 // Constructor/Destructor:
 
 Solver::Solver() :
+    // Parameters (user settable):
+    //
+    verbosity(0),
+    var_decay(opt_var_decay),
+    clause_decay(opt_clause_decay),
+    random_var_freq(opt_random_var_freq),
+    random_seed(opt_random_seed),
+    luby_restart(opt_luby_restart), ccmin_mode(opt_ccmin_mode), phase_saving(opt_phase_saving), rnd_pol(false), rnd_init_act(opt_rnd_init_act), garbage_frac(opt_garbage_frac), min_learnts_lim(opt_min_learnts_lim), restart_first(opt_restart_first), restart_inc(opt_restart_inc),
 
-                   // Parameters (user settable):
-                   //
-                   verbosity(0), var_decay(opt_var_decay), clause_decay(opt_clause_decay), random_var_freq(opt_random_var_freq), random_seed(opt_random_seed), luby_restart(opt_luby_restart), ccmin_mode(opt_ccmin_mode), phase_saving(opt_phase_saving), rnd_pol(false), rnd_init_act(opt_rnd_init_act), garbage_frac(opt_garbage_frac), min_learnts_lim(opt_min_learnts_lim), restart_first(opt_restart_first), restart_inc(opt_restart_inc)
+    // Parameters (the rest):
+    //
+    learntsize_factor((double)1 / (double)3),
+    learntsize_inc(1.1),
 
-                   // Parameters (the rest):
-                   //
-                   ,
-                   learntsize_factor((double)1 / (double)3), learntsize_inc(1.1)
+    // Parameters (experimental):
+    //
+    learntsize_adjust_start_confl(100),
+    learntsize_adjust_inc(1.5),
 
-                   // Parameters (experimental):
-                   //
-                   ,
-                   learntsize_adjust_start_confl(100), learntsize_adjust_inc(1.5)
+    // Statistics: (formerly in 'SolverStats')
+    //
+    solves(0),
+    starts(0),
+    decisions(0),
+    rnd_decisions(0),
+    propagations(0),
+    conflicts(0),
+    dec_vars(0),
+    num_clauses(0),
+    num_learnts(0),
+    clauses_literals(0),
+    learnts_literals(0),
+    max_literals(0), tot_literals(0),
+    watches(WatcherDeleted(ca)),
+    order_heap(VarOrderLt(activity)),
+    ok(true),
+    cla_inc(1),
+    var_inc(1),
+    qhead(0),
+    simpDB_assigns(-1),
+    simpDB_props(0),
+    progress_estimate(0),
+    remove_satisfied(true),
+    next_var(0),
 
-                   // Statistics: (formerly in 'SolverStats')
-                   //
-                   ,
-                   solves(0), starts(0), decisions(0), rnd_decisions(0), propagations(0), conflicts(0), dec_vars(0), num_clauses(0), num_learnts(0), clauses_literals(0), learnts_literals(0), max_literals(0), tot_literals(0)
-
-                   ,
-                   watches(WatcherDeleted(ca)), order_heap(VarOrderLt(activity)), ok(true), cla_inc(1), var_inc(1), qhead(0), simpDB_assigns(-1), simpDB_props(0), progress_estimate(0), remove_satisfied(true), next_var(0)
-
-                   // Resource constraints:
-                   //
-                   ,
-                   conflict_budget(-1), propagation_budget(-1), asynch_interrupt(false)
+    // Resource constraints:
+    //
+    conflict_budget(-1),
+    propagation_budget(-1),
+    asynch_interrupt(false)
 {
 }
 
@@ -409,7 +432,9 @@ void Solver::countDistances()
 }
 #endif
 
-#ifdef BACKPROP
+#if defined BACKPROP && defined JFRONTIERS_ACTIVITY
+// ERROR
+#elif defined BACKPROP
 Var Solver::pickBranchjFParent()
 {
     vec<Var> to_delete;

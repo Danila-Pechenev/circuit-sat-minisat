@@ -21,13 +21,13 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef Minisat_Solver_h
 #define Minisat_Solver_h
 
-#include "minisat/mtl/Vec.h"
-#include "minisat/mtl/Heap.h"
-#include "minisat/mtl/Alg.h"
-#include "minisat/mtl/IntMap.h"
-#include "minisat/utils/Options.h"
-#include "minisat/core/SolverTypes.h"
-#include <minisat/core/Config.h>
+#include "solver/mtl/Vec.h"
+#include "solver/mtl/Heap.h"
+#include "solver/mtl/Alg.h"
+#include "solver/mtl/IntMap.h"
+#include "solver/utils/Options.h"
+#include "solver/core/SolverTypes.h"
+#include "solver/core/Config.h"
 
 #include "core/source/structures/parser.hpp"
 

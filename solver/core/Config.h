@@ -1,12 +1,12 @@
 // ---------- Main solver parameters ----------
 //
-// ccmin-mode (recommended 1 or 2). Default: 2
+// ccmin-mode (recommended 1 or 2). Default: 2 | Controls conflict clause minimization (0=none, 1=basic, 2=deep)
 #define CCMIN_MODE 1
 //
-// rfirst. Default: 100
+// rfirst. Default: 100 | The base restart interval
 #define RFIRST 100
 //
-// Default polarity value. Default: true
+// Default polarity value. Default: true | In Minisat all polarities are assigned the same value at the beginning of the work
 #define DEFAULT_POLARITY_VALUE false
 //
 // --------------------------------------------
@@ -26,7 +26,7 @@
 // #define JFRONTIERS_ACTIVITY
 //
 // Define to start solving with Circuit-SAT heuristic
-#define CSAT_HEURISTIC_START
+// #define CSAT_HEURISTIC_START
 // Options:
 #define DEFAULT_HEURISTIC_AFTER_N_RESTARTS 1 // Start solving with default Minisat heuristic after N restarts
 #define RFIRST_CSAT 100                      // rfirst for Circuit-SAT heuristic
@@ -40,6 +40,6 @@
 // #define POLARITY_INIT_MAXPROB
 //
 // Define to use max-propagation polarity initialization heuristic
-#define POLARITY_INIT_MAXBACKPROP
+// #define POLARITY_INIT_MAXBACKPROP
 //
 // --------------------------------------------
