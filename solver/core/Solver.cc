@@ -315,7 +315,7 @@ void Solver::cancelUntil(int level)
 #if defined POLARITY_INIT_MAXPROB || defined POLARITY_INIT_MAXBACKPROP
 void Solver::setDefaultPolarities()
 {
-    std::map<int, std::pair<int, int>> polarities;
+    std::unordered_map<int, std::pair<int, int>> polarities;
     for (int i = 0; i < clauses.size(); ++i)
     {
         Clause &clause = ca[clauses[i]];
