@@ -229,8 +229,8 @@ int main(int argc, char **argv)
             if (ret == l_True)
             {
                 fprintf(res, "SAT\n");
-                int n_inputs = csat_instance->getInputGates().size();
-                for (int i = 0; i < n_inputs; i++)
+                size_t n_inputs = csat_instance->getInputGates().size();
+                for (size_t i = 0; i < n_inputs; i++)
                 {
                     if (S.model[i] != l_Undef)
                     {
