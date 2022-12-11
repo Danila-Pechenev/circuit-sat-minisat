@@ -15,7 +15,19 @@ Minisat is a very well-known SAT-solver. It is small, complete and efficient. Th
 (circuitsat-sat-minisat/build)$ cmake ..
 (circuitsat-sat-minisat/build)$ cmake --build .
 ```
+
 ### Using
 ```
 (circuitsat-sat-minisat/build)$ ./csat_solver <.bench instance path>
 ```
+There are some command line options. One can read about them in solver/core/Main.cc.
+
+### Configuring heuristics
+One can configure heuristics used in the solver in solver/core/Config.h.
+
+Available heuristics:
+- back propagation branching heurictic -- the selection of variables from outputs to inputs
+- activity-based jFrontier branching heurictic -- among the unassigned operands of the assigned gates, the one whose activity is maximal is selected
+- max-probability polarity initialization heuristic -- polarities are initialized so that probabilities of their values are maximal
+- max-propagation polarity initialization heuristic -- polarities are initialized so that unit-propagation during the solving is maximal
+- starting from circuit-based heuristic -- first, the circuit-based branching heuristic is used, and then the basic minisat heuristic is used
