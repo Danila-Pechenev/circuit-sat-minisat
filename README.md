@@ -9,3 +9,10 @@ In theoretical computer science, the circuit satisfiability problem (also known 
 Minisat is a very well-known SAT-solver. It is small, complete and efficient. This project is a Minisat-based Circuit-SAT-solver. It applies the Zeitin transformation and has support for a number of circuit-based heuristics that can be easily configured.
 
 ### Building
+```
+(circuitsat-sat-minisat)$ mkdir build
+(circuitsat-sat-minisat)$ cd build
+(circuitsat-sat-minisat/build)$ cmake ..
+(circuitsat-sat-minisat/build)$ cmake --build .
+```
+### Using:
