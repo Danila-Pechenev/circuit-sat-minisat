@@ -390,11 +390,8 @@ void Solver::setDefaultPolarities()
 void Solver::countDistances()
 {
     int number_of_gates = csat_instance.get()->getNumberOfGates();
-    distance_to_output.reserve(number_of_gates);
-    for (int i = 0; i < number_of_gates; ++i)
-    {
-        distance_to_output[i] = 0;
-    }
+    distance_to_output.clear();
+    distance_to_output.resize(number_of_gates, 0);
 
     std::queue<Var> q;
 

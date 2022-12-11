@@ -76,7 +76,6 @@ int main(int argc, char **argv)
         IntOption mem_lim("MAIN", "mem-lim", "Limit on memory usage in megabytes.\n", 0, IntRange(0, INT32_MAX));
         BoolOption strictp("MAIN", "strict", "Validate DIMACS header during parsing.", false);
         BoolOption verify("MAIN", "verify", "Verify satisfying set if it is found.", false);
-        BoolOption remove_cnf("MAIN", "remove-cnf", "Remove created cnf-file", true);
 
         parseOptions(argc, argv, true);
 
@@ -132,16 +131,11 @@ int main(int argc, char **argv)
         cnf_file.close();
         double transfer_to_cnf_time = cpuTime() - initial_time;
 
-        if (remove_cnf)
-        {
-            remove(cnf_file_name);
-        }
-
         initial_time = cpuTime();
         gzFile in = gzopen(cnf_file_name, "rb");
         if (in == NULL)
         {
-            printf("ERROR! Could not open file: %s", cnf_file_name), exit(1);
+            printf("ERROR! Could not open file: %s\n", cnf_file_name), exit(1);
         }
 
         if (S.verbosity > 0)
