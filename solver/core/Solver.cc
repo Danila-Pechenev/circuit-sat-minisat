@@ -1637,7 +1637,7 @@ bool Solver::verifySolution()
         if (operation == csat::GateType::AND)
         {
             result = true;
-            for (auto const &operand : csat_instance.get()->getGateOperands(gate))
+            for (size_t operand : csat_instance.get()->getGateOperands(gate))
             {
                 if (model[operand] != l_True)
                 {
@@ -1648,7 +1648,7 @@ bool Solver::verifySolution()
         else if (operation == csat::GateType::NAND)
         {
             result = false;
-            for (auto const &operand : csat_instance.get()->getGateOperands(gate))
+            for (size_t operand : csat_instance.get()->getGateOperands(gate))
             {
                 if (model[operand] != l_True)
                 {
@@ -1659,7 +1659,7 @@ bool Solver::verifySolution()
         else if (operation == csat::GateType::OR)
         {
             result = false;
-            for (auto const &operand : csat_instance.get()->getGateOperands(gate))
+            for (size_t operand : csat_instance.get()->getGateOperands(gate))
             {
                 if (model[operand] == l_True)
                 {
@@ -1670,7 +1670,7 @@ bool Solver::verifySolution()
         else if (operation == csat::GateType::NOR)
         {
             result = true;
-            for (auto const &operand : csat_instance.get()->getGateOperands(gate))
+            for (size_t operand : csat_instance.get()->getGateOperands(gate))
             {
                 if (model[operand] == l_True)
                 {
@@ -1681,7 +1681,7 @@ bool Solver::verifySolution()
         else if (operation == csat::GateType::XOR)
         {
             int count_true = 0;
-            for (auto const &operand : csat_instance.get()->getGateOperands(gate))
+            for (size_t operand : csat_instance.get()->getGateOperands(gate))
             {
                 if (model[operand] == l_True)
                 {
@@ -1694,7 +1694,7 @@ bool Solver::verifySolution()
         else if (operation == csat::GateType::NXOR)
         {
             int count_true = 0;
-            for (auto const &operand : csat_instance.get()->getGateOperands(gate))
+            for (size_t operand : csat_instance.get()->getGateOperands(gate))
             {
                 if (model[operand] == l_True)
                 {
@@ -1715,7 +1715,7 @@ bool Solver::verifySolution()
         }
     }
 
-    for (auto output : csat_instance.get()->getOutputGates())
+    for (size_t output : csat_instance.get()->getOutputGates())
     {
         if (model[output] != l_True)
         {
