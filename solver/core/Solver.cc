@@ -323,18 +323,15 @@ void Solver::setDefaultPolarities()
         {
             auto lit = clause[j];
             auto v = var(lit);
-            if (polarities.count(v) == 0)
-            {
-                polarities[v] = std::make_pair(0, 0);
-            }
 
+            auto& ref = polarities[v];
             if (sign(lit))
             {
-                ++polarities[v].first;
+                ++ref.first;
             }
             else
             {
-                ++polarities[v].second;
+                ++ref.second;
             }
         }
     }
