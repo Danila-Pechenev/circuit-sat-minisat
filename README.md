@@ -31,3 +31,9 @@ Available heuristics:
 - max-probability polarity initialization heuristic -- polarities are initialized so that probabilities of their values are maximal
 - max-propagation polarity initialization heuristic -- polarities are initialized so that unit-propagation during the solving is maximal
 - starting from circuit-based heuristic -- first, the circuit-based branching heuristic is used, and then the basic minisat heuristic is used
+
+### Benchmarks
+One can find some circuits in benchmark folder. There are 5 classes of circuits, each contains description, 10 SAT-instances and 10 UNSAT-instances.
+
+### Contact
+If you have any questions feel free to write me: danilapechenev@gmail.com.
