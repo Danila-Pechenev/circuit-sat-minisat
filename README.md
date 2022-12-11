@@ -14,15 +14,15 @@ Minisat is a very well-known SAT-solver. It is small, complete and efficient. Th
 
 ### Building
 ```
-(circuitsat-sat-minisat)$ mkdir build
-(circuitsat-sat-minisat)$ cd build
-(circuitsat-sat-minisat/build)$ cmake ..
-(circuitsat-sat-minisat/build)$ cmake --build .
+(circuit-sat-minisat)$ mkdir build
+(circuit-sat-minisat)$ cd build
+(circuit-sat-minisat/build)$ cmake ..
+(circuit-sat-minisat/build)$ cmake --build .
 ```
 
 ### Using
 ```
-(circuitsat-sat-minisat/build)$ ./csat_solver <.bench instance path>
+(circuit-sat-minisat/build)$ ./csat_solver <.bench instance path>
 ```
 There are some command line options. One can read about them in solver/core/Main.cc.
 
